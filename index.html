@@ -611,7 +611,11 @@ body {
     <!-- Invoice Date -->
     <div>
       <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Invoice Date</div>
-      <input id="invoice-date" type="date" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;font-size:15px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;">
+      <div style="display:grid;grid-template-columns:2fr 2fr 3fr;gap:6px;">
+        <select id="invoice-date-d" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 4px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;width:100%;"></select>
+        <select id="invoice-date-m" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 4px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;width:100%;"></select>
+        <select id="invoice-date-y" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 4px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;width:100%;"></select>
+      </div>
     </div>
  
     <!-- Invoice Amount -->
@@ -628,7 +632,11 @@ body {
       </div>
       <div>
         <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Pick Up Date</div>
-        <input id="pickup-date" type="date" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;">
+          <select id="pickup-date-d" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 4px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;width:100%;font-size:12px;"></select>
+          <select id="pickup-date-m" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 4px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;width:100%;font-size:12px;"></select>
+          <select id="pickup-date-y" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 4px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;width:100%;font-size:11px;"></select>
+        </div>
       </div>
     </div>
  
@@ -1025,13 +1033,47 @@ function showScreen(id) {
 function goHome() { showScreen('screen-home'); }
 function goCategories() { renderCategories(); showScreen('screen-categories'); }
 function goItems() { renderItems(state.currentCategory); showScreen('screen-items'); }
+function populateInvoiceDateSelects() {
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const now = new Date();
+  const curD = now.getDate(), curM = now.getMonth(), curY = now.getFullYear();
+ 
+  ['invoice-date','pickup-date'].forEach(prefix => {
+    const saved = prefix === 'invoice-date' ? state.invoiceDate : state.pickupDate;
+    let sD = curD, sM = curM + 1, sY = curY;
+    if (saved) { const p = saved.split('-'); sY = +p[0]; sM = +p[1]; sD = +p[2]; }
+ 
+    const dSel = document.getElementById(prefix+'-d');
+    const mSel = document.getElementById(prefix+'-m');
+    const ySel = document.getElementById(prefix+'-y');
+    if (!dSel) return;
+ 
+    dSel.innerHTML = Array.from({length:31},(_,i) =>
+      `<option value="${String(i+1).padStart(2,'0')}" ${i+1===sD?'selected':''}>${String(i+1).padStart(2,'0')}</option>`
+    ).join('');
+    mSel.innerHTML = months.map((m,i) =>
+      `<option value="${String(i+1).padStart(2,'0')}" ${i+1===sM?'selected':''}>${m}</option>`
+    ).join('');
+    ySel.innerHTML = [curY-1,curY,curY+1].map(y =>
+      `<option value="${y}" ${y===sY?'selected':''}>${y}</option>`
+    ).join('');
+  });
+}
+ 
+function getInvoiceDate(prefix) {
+  const d = document.getElementById(prefix+'-d').value;
+  const m = document.getElementById(prefix+'-m').value;
+  const y = document.getElementById(prefix+'-y').value;
+  return `${y}-${m}-${d}`;
+}
+ 
 function goPhoto() {
   showScreen('screen-photo');
   document.getElementById('do-number').value = state.doNumber || '';
-  document.getElementById('invoice-date').value = state.invoiceDate || '';
+  populateInvoiceDateSelects();
   document.getElementById('invoice-amount').value = state.invoiceAmount || '';
   document.getElementById('pickup-by').value = state.pickupBy || '';
-  document.getElementById('pickup-date').value = state.pickupDate || '';
+  // pickup date populated in populateInvoiceDateSelects
   document.getElementById('invoice-remarks').value = state.invoiceRemarks || '';
   renderPhotoGrid();
 }
@@ -1287,10 +1329,10 @@ function saveDO() {
     return;
   }
   state.doNumber = document.getElementById('do-number').value;
-  state.invoiceDate = document.getElementById('invoice-date').value;
+  state.invoiceDate = getInvoiceDate('invoice-date');
   state.invoiceAmount = document.getElementById('invoice-amount').value;
   state.pickupBy = document.getElementById('pickup-by').value;
-  state.pickupDate = document.getElementById('pickup-date').value;
+  state.pickupDate = getInvoiceDate('pickup-date');
   state.invoiceRemarks = document.getElementById('invoice-remarks').value;
   saveState();
   showToast('Saved ✓');
