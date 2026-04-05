@@ -1472,14 +1472,20 @@ async function fbGet(path) {
   return res.ok ? res.json() : null;
 }
 async function fbSet(path, data) {
-  await fetch(FB_URL + path + '.json', {method:'PUT', body:JSON.stringify(data)});
+  const res = await fetch(FB_URL + path + '.json', {method:'PUT', body:JSON.stringify(data)});
+  if (!res.ok) throw new Error('Firebase write failed: ' + res.status);
+  const json = await res.json();
+  if (json && json.error) throw new Error('Firebase error: ' + json.error);
+  return json;
 }
 async function fbPush(path, data) {
   const res = await fetch(FB_URL + path + '.json', {method:'POST', body:JSON.stringify(data)});
+  if (!res.ok) throw new Error('Firebase write failed: ' + res.status);
   return res.json();
 }
 async function fbUpdate(path, data) {
-  await fetch(FB_URL + path + '.json', {method:'PATCH', body:JSON.stringify(data)});
+  const res = await fetch(FB_URL + path + '.json', {method:'PATCH', body:JSON.stringify(data)});
+  if (!res.ok) throw new Error('Firebase write failed: ' + res.status);
 }
  
 // ── LOGIN ──
@@ -1940,7 +1946,8 @@ async function addUser() {
     document.getElementById('new-user-pin').value = '';
     loadAdminUsers();
   } catch(e) {
-    showToast('⚠ Failed. Check connection.');
+    console.error('addUser error:', e);
+    showToast('⚠ ' + (e.message || 'Failed. Check connection.'));
   }
 }
  
@@ -2017,16 +2024,16 @@ async function sendInvoiceToSheet(autoSave = false) {
           date: invoiceDate,
         });
       } catch(photoErr) {
-        throw new Error(`照片 ${i+1} 上传失败: ${photoErr.message}`);
+        throw new Error(`Photo ${i+1} upload failed: ${photoErr.message}`);
       }
  
       if (result && result.status === 'error') {
-        throw new Error(`照片 ${i+1} Drive 错误: ${result.message}`);
+        throw new Error(`Photo ${i+1} Drive error: ${result.message}`);
       }
       if (result && result.url) {
         photoUrls.push(result.url);
       } else {
-        throw new Error(`照片 ${i+1} 没有收到 URL，请检查 App Script 权限`);
+        throw new Error(`Photo ${i+1} did not receive URL. Check App Script permissions.`);
       }
     }
  
