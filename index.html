@@ -353,6 +353,7 @@ body {
 .status-badge.pending { background:rgba(96,165,250,0.15); color:var(--blue); }
 .status-badge.approved { background:rgba(74,222,128,0.15); color:var(--green); }
 .status-badge.rejected { background:rgba(248,113,113,0.15); color:var(--red); }
+.status-badge.cancelled { background:rgba(153,153,153,0.15); color:var(--text2); }
 .approve-row { display:flex; gap:8px; margin-top:6px; }
 .approve-btn { flex:1; padding:8px; border:none; border-radius:var(--radius-sm); font-size:13px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; }
 .approve-btn.yes { background:rgba(74,222,128,0.2); color:var(--green); }
@@ -1596,7 +1597,19 @@ async function submitLeave() {
     submittedAt: new Date().toISOString(),
   };
   try {
+    // Save to Firebase
     await fbPush('/leaves', data);
+    // Save to Google Sheet
+    await gsRequest({
+      secret: GS_SECRET,
+      type: 'leave',
+      staff: state.staff,
+      leaveType,
+      from,
+      to,
+      reason: reason || '',
+      submittedAt: data.submittedAt,
+    });
     showToast('Application submitted!');
     leaveType = null;
     document.querySelectorAll('.leave-type-btn').forEach(b => b.classList.remove('selected'));
@@ -1625,6 +1638,10 @@ async function loadMyLeaves() {
         </div>
         <div class="lr-dates">📅 ${r.from} → ${r.to}</div>
         ${r.reason ? `<div class="lr-reason">"${r.reason}"</div>` : ''}
+        ${r.status === 'pending' ? `
+        <div class="approve-row" style="margin-top:8px;">
+          <button class="approve-btn no" onclick="cancelLeave('${id}')">✕ Cancel Application</button>
+        </div>` : ''}
       </div>`).join('');
   } catch(e) {
     list.innerHTML = '<div class="empty-state">Failed to load</div>';
@@ -1661,9 +1678,41 @@ async function loadPendingLeaves() {
  
 async function approveLeave(id, status) {
   try {
+    const data = await fbGet('/leaves/' + id);
     await fbUpdate('/leaves/' + id, {status});
+    // Update Google Sheet
+    await gsRequest({
+      secret: GS_SECRET,
+      type: 'updateLeave',
+      staff: data.staff,
+      leaveType: data.type,
+      from: data.from,
+      to: data.to,
+      status: status,
+    });
     showToast(status === 'approved' ? 'Approved!' : 'Rejected');
     loadPendingLeaves();
+  } catch(e) {
+    showToast('⚠ Failed. Check connection.');
+  }
+}
+ 
+async function cancelLeave(id) {
+  try {
+    const data = await fbGet('/leaves/' + id);
+    await fbUpdate('/leaves/' + id, {status: 'cancelled'});
+    // Update Google Sheet
+    await gsRequest({
+      secret: GS_SECRET,
+      type: 'updateLeave',
+      staff: data.staff,
+      leaveType: data.type,
+      from: data.from,
+      to: data.to,
+      status: 'cancelled',
+    });
+    showToast('Application cancelled');
+    loadMyLeaves();
   } catch(e) {
     showToast('⚠ Failed. Check connection.');
   }
@@ -1761,8 +1810,18 @@ async function sendInvoiceToSheet(autoSave = false) {
     });
  
     if (invoiceResult && invoiceResult.status === 'error') {
-      throw new Error(`Sheet 写入失败: ${invoiceResult.message}`);
+      throw new Error(`Sheet error: ${invoiceResult.message}`);
     }
+ 
+    // Clear all invoice data after successful save
+    state.doPhotos = [];
+    state.doNumber = '';
+    state.invoiceDate = null;
+    state.invoiceAmount = '';
+    state.pickupBy = '';
+    state.pickupDate = null;
+    state.invoiceRemarks = '';
+    saveState();
  
     showToast(`Saved! ${photoUrls.length} photo(s) uploaded ✓`);
     if (autoSave) setTimeout(() => goHome(), 1500);
