@@ -667,11 +667,8 @@ body {
   </div>
  
   <!-- Save button at bottom -->
-  <div style="padding:16px;margin-bottom:60px;border-top:1px solid var(--border);background:var(--bg);display:flex;flex-direction:column;gap:10px;">
-    <button class="save-btn" onclick="saveDO()" style="margin:0;">Save</button>
-    <button id="send-sheet-btn" onclick="sendInvoiceToSheet()" style="width:100%;background:rgba(74,222,128,0.15);color:var(--green);border:1.5px solid rgba(74,222,128,0.4);border-radius:var(--radius);padding:14px;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">
-      📊 Send to Google Sheet
-    </button>
+  <div style="padding:16px;margin-bottom:60px;border-top:1px solid var(--border);background:var(--bg);">
+    <button id="send-sheet-btn" class="save-btn" onclick="saveDO()" style="margin:0;">Save</button>
   </div>
 </div>
  
@@ -1338,18 +1335,12 @@ function saveDO() {
   state.pickupDate = getInvoiceDate('pickup-date');
   state.invoiceRemarks = document.getElementById('invoice-remarks').value;
   saveState();
-  showToast('Saved ✓');
-  setTimeout(() => goHome(), 600);
+  // Auto send to Google Sheet
+  sendInvoiceToSheet(true);
 }
  
  
 // ── LOGIN ──
-const USERS = {
-  '5237': 'Ain',
-  '3695': 'Dayang',
-  '3440': 'Supervisor',
-};
- 
 let loginPin = '';
  
 function loginKey(k) {
@@ -1440,7 +1431,7 @@ function navTo(tab) {
  
 function goMe() {
   document.getElementById('me-name').textContent = state.staff || '—';
-  document.getElementById('me-role').textContent = state.staff === 'Supervisor' ? 'Supervisor' : 'Staff';
+  document.getElementById('me-role').textContent = state.staffRole === 'supervisor' ? 'Supervisor' : 'Staff';
   // Load saved contact info
   const contactKey = 'contact_' + state.staff;
   const saved = JSON.parse(localStorage.getItem(contactKey) || '{}');
@@ -1543,7 +1534,7 @@ function goPortal() {
   document.getElementById('leave-reason').value = '';
   // Show approve tab only for Supervisor
   const approveTab = document.getElementById('tab-approve');
-  if (state.staff === 'Supervisor') approveTab.style.display = 'flex';
+  if (state.staffRole === 'supervisor') approveTab.style.display = 'flex';
   else approveTab.style.display = 'none';
   switchPortalTab('apply');
   showScreen('screen-portal');
@@ -1656,44 +1647,69 @@ async function approveLeave(id, status) {
  
  
 // ── GOOGLE SHEET SYNC ──
-const GS_URL = 'https://script.google.com/macros/s/AKfycbwoA5AZacDLqDf2UN2McTtT5rAZubv_pUOJe2fFNCKxCgHxkVdXFrDlRJDMJxcCRC8/exec';
+const GS_URL = 'https://script.google.com/macros/s/AKfycbwKEdYTGqj0Hl0AfQsmO2_9WefXd0cC5jJiFa6eIhel8KKyuQ1hUdt6DwRoCHyk7N8/exec';
 const GS_SECRET = '668811';
  
-async function sendInvoiceToSheet() {
+async function sendInvoiceToSheet(autoSave = false) {
   if (!state.doPhotos || state.doPhotos.length === 0) {
     showToast('⚠ Upload invoice photo first!');
     return;
   }
  
   const btn = document.getElementById('send-sheet-btn');
-  btn.textContent = 'Sending...';
+  btn.textContent = 'Uploading photos...';
   btn.disabled = true;
  
+  const invoiceNumber = document.getElementById('do-number').value || '';
   const invoiceDate = getInvoiceDate('invoice-date');
   const pickupDate = getInvoiceDate('pickup-date');
  
-  const payload = {
-    secret: GS_SECRET,
-    type: 'invoice',
-    invoiceNumber: document.getElementById('do-number').value || '',
-    invoiceDate: invoiceDate,
-    invoiceAmount: document.getElementById('invoice-amount').value || '',
-    pickupBy: document.getElementById('pickup-by').value || '',
-    pickupDate: pickupDate,
-    remarks: document.getElementById('invoice-remarks').value || '',
-    staff: state.staff || '',
-  };
- 
   try {
-    const res = await fetch(GS_URL, {
+    // Step 1: Upload each photo to Google Drive
+    const photoUrls = [];
+    for (let i = 0; i < state.doPhotos.length; i++) {
+      btn.textContent = `Uploading photo ${i+1}/${state.doPhotos.length}...`;
+      const base64 = state.doPhotos[i].split(',')[1];
+      const res = await fetch(GS_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          secret: GS_SECRET,
+          type: 'photo',
+          imageBase64: base64,
+          fileName: `invoice_${invoiceNumber}_${i+1}.jpg`,
+          invoiceNumber: invoiceNumber,
+          date: invoiceDate,
+        }),
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const result = await res.json();
+      if (result.url) photoUrls.push(result.url);
+    }
+ 
+    // Step 2: Save invoice data + photo links to Google Sheet
+    btn.textContent = 'Saving to Sheet...';
+    await fetch(GS_URL, {
       method: 'POST',
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        secret: GS_SECRET,
+        type: 'invoice',
+        invoiceNumber,
+        invoiceDate,
+        invoiceAmount: document.getElementById('invoice-amount').value || '',
+        pickupBy: document.getElementById('pickup-by').value || '',
+        pickupDate,
+        remarks: document.getElementById('invoice-remarks').value || '',
+        staff: state.staff || '',
+        photoUrls,
+      }),
       headers: { 'Content-Type': 'application/json' },
-      mode: 'no-cors',
     });
-    showToast('Sent to Google Sheet ✓');
+ 
+    showToast('Saved & Sent ✓');
+    if (autoSave) setTimeout(() => goHome(), 1200);
   } catch(e) {
     showToast('⚠ Failed to send. Check connection.');
+    if (autoSave) setTimeout(() => goHome(), 1500);
   } finally {
     btn.textContent = '📊 Send to Google Sheet';
     btn.disabled = false;
