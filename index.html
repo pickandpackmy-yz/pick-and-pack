@@ -712,14 +712,26 @@ body {
           <div class="leave-type-btn" onclick="selectLeaveType('Emergency')" id="lt-Emergency">Emergency<br>Leave</div>
         </div>
         <div class="portal-section-title">Duration</div>
-        <div class="portal-date-row">
-          <div>
-            <div class="portal-label">From</div>
-            <input class="portal-input" style="margin:0" type="date" id="leave-from">
+        <div style="margin-bottom:10px;">
+          <div class="portal-label" style="margin-bottom:6px;">From</div>
+          <div style="display:grid;grid-template-columns:2fr 2fr 3fr;gap:6px;">
+            <select id="leave-from-d" class="portal-input" style="margin:0;padding:10px 6px;">
+            </select>
+            <select id="leave-from-m" class="portal-input" style="margin:0;padding:10px 6px;">
+            </select>
+            <select id="leave-from-y" class="portal-input" style="margin:0;padding:10px 6px;">
+            </select>
           </div>
-          <div>
-            <div class="portal-label">To</div>
-            <input class="portal-input" style="margin:0" type="date" id="leave-to">
+        </div>
+        <div style="margin-bottom:10px;">
+          <div class="portal-label" style="margin-bottom:6px;">To</div>
+          <div style="display:grid;grid-template-columns:2fr 2fr 3fr;gap:6px;">
+            <select id="leave-to-d" class="portal-input" style="margin:0;padding:10px 6px;">
+            </select>
+            <select id="leave-to-m" class="portal-input" style="margin:0;padding:10px 6px;">
+            </select>
+            <select id="leave-to-y" class="portal-input" style="margin:0;padding:10px 6px;">
+            </select>
           </div>
         </div>
         <div class="portal-section-title" style="margin-top:10px;">Reason</div>
@@ -1459,13 +1471,42 @@ async function fbUpdate(path, data) {
 // ── STAFF PORTAL ──
 let leaveType = null;
  
+function populateDateSelects() {
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const now = new Date();
+  const curD = now.getDate(), curM = now.getMonth(), curY = now.getFullYear();
+ 
+  ['leave-from','leave-to'].forEach(prefix => {
+    const dSel = document.getElementById(prefix+'-d');
+    const mSel = document.getElementById(prefix+'-m');
+    const ySel = document.getElementById(prefix+'-y');
+ 
+    dSel.innerHTML = Array.from({length:31},(_,i)=>
+      `<option value="${String(i+1).padStart(2,'0')}" ${i+1===curD?'selected':''}>${String(i+1).padStart(2,'0')}</option>`
+    ).join('');
+ 
+    mSel.innerHTML = months.map((m,i)=>
+      `<option value="${String(i+1).padStart(2,'0')}" ${i===curM?'selected':''}>${m}</option>`
+    ).join('');
+ 
+    ySel.innerHTML = [curY, curY+1].map(y=>
+      `<option value="${y}" ${y===curY?'selected':''}>${y}</option>`
+    ).join('');
+  });
+}
+ 
+function getSelectDate(prefix) {
+  const d = document.getElementById(prefix+'-d').value;
+  const m = document.getElementById(prefix+'-m').value;
+  const y = document.getElementById(prefix+'-y').value;
+  return `${y}-${m}-${d}`;
+}
+ 
 function goPortal() {
   leaveType = null;
   document.querySelectorAll('.leave-type-btn').forEach(b => b.classList.remove('selected'));
   // Set today as default from date
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('leave-from').value = today;
-  document.getElementById('leave-to').value = today;
+  populateDateSelects();
   document.getElementById('leave-reason').value = '';
   // Show approve tab only for Supervisor
   const approveTab = document.getElementById('tab-approve');
@@ -1494,8 +1535,8 @@ function switchPortalTab(tab) {
  
 async function submitLeave() {
   if (!leaveType) { showToast('⚠ Select leave type first!'); return; }
-  const from = document.getElementById('leave-from').value;
-  const to = document.getElementById('leave-to').value;
+  const from = getSelectDate('leave-from');
+  const to = getSelectDate('leave-to');
   if (!from || !to) { showToast('⚠ Select dates!'); return; }
   if (to < from) { showToast('⚠ End date must be after start date!'); return; }
   const reason = document.getElementById('leave-reason').value;
