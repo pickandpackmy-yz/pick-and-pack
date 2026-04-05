@@ -33,11 +33,11 @@ body {
   min-height: 100dvh;
   overflow-x: hidden;
 }
- 
+
 /* ── SCREENS ── */
 .screen { display: none; min-height: 100dvh; }
 .screen.active { display: flex; flex-direction: column; }
- 
+
 /* ── HEADER ── */
 .header {
   background: var(--surface);
@@ -64,7 +64,7 @@ body {
   white-space: nowrap;
 }
 .header-action:disabled { opacity: 0.4; }
- 
+
 /* ── HOME SCREEN ── */
 #screen-home {
   background: var(--bg);
@@ -117,9 +117,9 @@ body {
 .home-staff-badge .badge-dot { display: none; }
 .home-section { padding: 0 20px; }
 .home-section-title { font-size: 11px; font-weight: 600; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
- 
- 
- 
+
+
+
 .start-btn {
   display: block; width: calc(100% - 32px); margin: 0 16px 16px;
   background: var(--accent); color: #000;
@@ -130,7 +130,7 @@ body {
 }
 .start-btn:active { transform: scale(0.98); }
 .start-btn:disabled { opacity: 0.3; }
- 
+
 .summary-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
 .summary-card {
   background: var(--surface);
@@ -142,7 +142,7 @@ body {
 .summary-card .card-value { font-size: 20px; font-weight: 600; font-family: 'DM Mono', monospace; }
 .summary-card .card-value.green { color: var(--green); }
 .summary-card .card-value.red { color: var(--red); }
- 
+
 /* ── CATEGORY LIST ── */
 #screen-categories { background: var(--bg); }
 .category-list { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
@@ -165,13 +165,13 @@ body {
 .cat-card .cat-done { font-size: 12px; color: var(--green); font-weight: 500; }
 .cat-card .cat-arrow { color: var(--text3); font-size: 16px; }
 .progress-ring { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--text2); }
- 
+
 .supplier-label {
   font-size: 11px; font-weight: 600; color: var(--text3);
   letter-spacing: 1px; text-transform: uppercase;
   padding: 8px 4px 4px;
 }
- 
+
 /* ── ITEM LIST ── */
 #screen-items { background: var(--bg); }
 .item-list { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
@@ -189,11 +189,11 @@ body {
 .item-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .item-meta { font-size: 11px; color: var(--text2); margin-top: 3px; font-family: 'DM Mono', monospace; }
 .item-diff { font-size: 13px; font-weight: 600; font-family: 'DM Mono', monospace; flex-shrink: 0; }
- 
+
 /* ── ITEM FORM ── */
 #screen-form { background: var(--bg); }
 .form-scroll { flex: 1; overflow-y: auto; padding: 12px 16px; }
- 
+
 .form-hero {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -206,7 +206,7 @@ body {
 .form-prices { display: flex; gap: 16px; margin-top: 8px; }
 .form-price-item { font-size: 12px; color: var(--text2); }
 .form-price-item span { color: var(--text); font-weight: 500; }
- 
+
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
 .form-field { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; }
 .form-field.full { grid-column: 1 / -1; }
@@ -223,8 +223,8 @@ body {
 .form-input::-webkit-inner-spin-button { -webkit-appearance: none; }
 .form-input::placeholder { color: var(--text3); }
 .form-hint { font-size: 11px; color: var(--text3); margin-top: 4px; }
- 
- 
+
+
 .calc-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; }
 .calc-key { font-size: 12px; color: var(--text2); }
 .calc-val { font-size: 13px; font-family: 'DM Mono', monospace; font-weight: 500; }
@@ -235,7 +235,7 @@ body {
 .calc-diff-val.zero { color: var(--text2); }
 .calc-diff-val.pos { color: var(--green); }
 .calc-diff-val.neg { color: var(--red); }
- 
+
 .discount-section { margin-bottom: 16px; }
 .discount-toggle { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; cursor: pointer; }
 .toggle-switch { width: 40px; height: 22px; background: var(--surface3); border-radius: 11px; position: relative; transition: background 0.2s; flex-shrink: 0; }
@@ -244,7 +244,7 @@ body {
 .toggle-switch.on::after { transform: translateX(18px); }
 .toggle-label { font-size: 13px; font-weight: 500; flex: 1; }
 .toggle-sub { font-size: 11px; color: var(--text2); }
- 
+
 .remarks-field { margin-bottom: 16px; }
 .remarks-input {
   width: 100%; background: var(--surface); border: 1px solid var(--border);
@@ -253,7 +253,7 @@ body {
   color: var(--text); outline: none; resize: none; height: 70px;
 }
 .remarks-input::placeholder { color: var(--text3); }
- 
+
 .save-btn {
   display: block; width: 100%; margin-bottom: 20px;
   background: var(--accent); color: #000;
@@ -263,7 +263,7 @@ body {
   transition: all 0.15s;
 }
 .save-btn:active { transform: scale(0.98); }
- 
+
 /* ── NUMPAD ── */
 .numpad-overlay {
   display: none; position: fixed; inset: 0; z-index: 200;
@@ -288,8 +288,8 @@ body {
 .numpad-key.del { background: var(--surface3); font-size: 18px; }
 .numpad-key.ok { background: var(--accent); color: #000; font-weight: 700; }
 .numpad-close { display: block; width: 100%; background: var(--surface2); border: none; border-radius: var(--radius); padding: 14px; color: var(--text2); font-size: 14px; cursor: pointer; font-family: 'DM Sans', sans-serif; margin-top: 4px; }
- 
- 
+
+
 /* ── LOGIN SCREEN ── */
 #screen-login {
   background: var(--bg);
@@ -329,8 +329,8 @@ body {
 .login-key.del { font-size: 18px; background: var(--surface3); }
 .login-key.empty { background: none; cursor: default; }
 .login-error { font-size: 13px; color: var(--red); text-align: center; margin-top: 16px; min-height: 20px; }
- 
- 
+
+
 /* ── STAFF PORTAL ── */
 #screen-portal { background: var(--bg); }
 .portal-scroll { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:14px; }
@@ -358,7 +358,7 @@ body {
 .approve-btn { flex:1; padding:8px; border:none; border-radius:var(--radius-sm); font-size:13px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; }
 .approve-btn.yes { background:rgba(74,222,128,0.2); color:var(--green); }
 .approve-btn.no { background:rgba(248,113,113,0.2); color:var(--red); }
- 
+
 /* ── OWNER ADMIN ── */
 #screen-admin { background: var(--bg); }
 .admin-scroll { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:14px; padding-bottom:90px; }
@@ -420,8 +420,8 @@ body {
 .portal-tab { flex:1; padding:10px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13px; font-weight:500; cursor:pointer; text-align:center; color:var(--text2); font-family:'DM Sans',sans-serif; }
 .portal-tab.active { background:var(--accent); color:#000; border-color:var(--accent); }
 .empty-state { text-align:center; color:var(--text3); font-size:13px; padding:32px 0; }
- 
- 
+
+
 /* ── BOTTOM NAV ── */
 .bottom-nav {
   position: fixed; bottom: 0; left: 0; right: 0;
@@ -444,10 +444,10 @@ body {
 }
 .nav-btn.active { color: var(--accent); }
 .nav-btn .nav-icon { font-size: 22px; line-height: 1; }
- 
+
 /* Add bottom padding to screens with nav */
 .has-nav { padding-bottom: 70px; }
- 
+
 /* ── TOAST ── */
 .toast {
   position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px);
@@ -457,7 +457,7 @@ body {
   white-space: nowrap;
 }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
- 
+
 /* ── PHOTO SCREEN ── */
 #screen-photo { background: var(--bg); }
 .photo-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 20px; }
@@ -498,7 +498,7 @@ body {
 document.addEventListener('touchstart', function(e) {
   if (e.touches.length > 1) e.preventDefault();
 }, { passive: false });
- 
+
 // Prevent double-tap zoom
 let lastTouchEnd = 0;
 document.addEventListener('touchend', function(e) {
@@ -506,7 +506,7 @@ document.addEventListener('touchend', function(e) {
   if (now - lastTouchEnd <= 300) e.preventDefault();
   lastTouchEnd = now;
 }, { passive: false });
- 
+
 // Prevent gesture zoom (iOS Safari)
 document.addEventListener('gesturestart', function(e) {
   e.preventDefault();
@@ -544,7 +544,7 @@ document.addEventListener('gesturestart', function(e) {
     <div class="login-error" id="login-error"></div>
   </div>
 </div>
- 
+
 <!-- HOME -->
 <div id="screen-home" class="screen">
   <div class="home-center has-nav">
@@ -555,10 +555,10 @@ document.addEventListener('gesturestart', function(e) {
       <span class="badge-dot"></span>
       <span id="home-staff-name">—</span>
     </div>
- 
+
   </div>
 </div>
- 
+
 <!-- CATEGORIES -->
 <div id="screen-categories" class="screen">
   <div class="header">
@@ -571,7 +571,7 @@ document.addEventListener('gesturestart', function(e) {
   </div>
   <div class="category-list has-nav" id="category-list"></div>
 </div>
- 
+
 <!-- ITEMS -->
 <div id="screen-items" class="screen">
   <div class="header">
@@ -583,7 +583,7 @@ document.addEventListener('gesturestart', function(e) {
   </div>
   <div class="item-list has-nav" id="item-list"></div>
 </div>
- 
+
 <!-- FORM -->
 <div id="screen-form" class="screen">
   <div class="header">
@@ -599,7 +599,7 @@ document.addEventListener('gesturestart', function(e) {
       <div class="form-prices" id="form-prices" style="margin-top:8px;"></div>
     </div>
 </div>
- 
+
     <div class="form-grid">
       <div class="form-field" onclick="openNumpad('opening','Opening Stock')">
         <div class="form-label">Opening</div>
@@ -627,7 +627,7 @@ document.addEventListener('gesturestart', function(e) {
         <div class="form-hint">End of day count</div>
       </div>
     </div>
- 
+
     <div id="reject-photo-section" style="display:none;margin-bottom:16px;">
       <div style="font-size:11px;font-weight:600;color:#f87171;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px;">📸 Reject Photo Required</div>
       <div style="background:rgba(248,113,113,0.08);border:1.5px solid rgba(248,113,113,0.4);border-radius:12px;padding:14px;">
@@ -646,7 +646,7 @@ document.addEventListener('gesturestart', function(e) {
         <div id="reject-photo-status" style="font-size:11px;color:var(--text3);margin-top:8px;text-align:center;">No photo uploaded yet</div>
       </div>
     </div>
- 
+
     <div class="discount-section">
       <div class="discount-toggle" onclick="toggleDiscount()">
         <div class="toggle-switch" id="discount-toggle-sw"></div>
@@ -662,17 +662,17 @@ document.addEventListener('gesturestart', function(e) {
         </div>
       </div>
     </div>
- 
- 
- 
+
+
+
     <div class="remarks-field">
       <textarea class="remarks-input" id="fld-remarks" placeholder="Remarks (optional)..."></textarea>
     </div>
- 
+
     <button class="save-btn" onclick="saveItem()">Save</button>
   </div>
 </div>
- 
+
 <!-- PHOTO -->
 <div id="screen-photo" class="screen">
   <div class="header">
@@ -680,13 +680,13 @@ document.addEventListener('gesturestart', function(e) {
     <div><div class="header-title">Upload Invoice Photo</div></div>
   </div>
   <div style="flex:1;overflow-y:auto;padding:16px;padding-bottom:90px;display:flex;flex-direction:column;gap:16px;">
- 
+
     <!-- Invoice Number -->
     <div>
       <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Invoice Number</div>
       <input class="do-input" id="do-number" type="text" placeholder="Enter invoice number" inputmode="text" style="text-align:left;letter-spacing:0;font-family:'DM Sans',sans-serif;font-size:15px;">
     </div>
- 
+
     <!-- Invoice Date -->
     <div>
       <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Invoice Date</div>
@@ -696,13 +696,13 @@ document.addEventListener('gesturestart', function(e) {
         <select id="invoice-date-y" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 4px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;width:100%;"></select>
       </div>
     </div>
- 
+
     <!-- Invoice Amount -->
     <div>
       <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Invoice Amount (RM)</div>
       <input id="invoice-amount" type="number" inputmode="decimal" placeholder="0.00" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;font-size:18px;font-family:'DM Mono',monospace;color:var(--text);outline:none;">
     </div>
- 
+
     <!-- Pick Up Info -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
       <div>
@@ -718,7 +718,7 @@ document.addEventListener('gesturestart', function(e) {
         </div>
       </div>
     </div>
- 
+
     <!-- Upload buttons -->
     <div>
       <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Photos</div>
@@ -733,26 +733,26 @@ document.addEventListener('gesturestart', function(e) {
         </label>
       </div>
     </div>
- 
+
     <!-- Remarks -->
     <div>
       <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Remarks</div>
       <textarea id="invoice-remarks" placeholder="Optional..." style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;resize:none;height:80px;"></textarea>
     </div>
- 
+
     <!-- Photo preview grid -->
     <div id="photo-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"></div>
- 
+
   </div>
- 
+
   <!-- Save button at bottom -->
   <div style="padding:16px;margin-bottom:60px;border-top:1px solid var(--border);background:var(--bg);">
     <button id="send-sheet-btn" class="save-btn" onclick="saveDO()" style="margin:0;">Save</button>
   </div>
 </div>
- 
- 
- 
+
+
+
 <!-- NUMPAD -->
 <div class="numpad-overlay" id="numpad-overlay" onclick="closeNumpadOutside(event)">
   <div class="numpad-sheet">
@@ -775,7 +775,7 @@ document.addEventListener('gesturestart', function(e) {
     <button class="numpad-close" onclick="closeNumpad()">Cancel</button>
   </div>
 </div>
- 
+
 <!-- STAFF PORTAL -->
 <div id="screen-portal" class="screen">
   <div class="header">
@@ -788,7 +788,7 @@ document.addEventListener('gesturestart', function(e) {
       <button class="portal-tab" id="tab-history" onclick="switchPortalTab('history')">My Requests</button>
       <button class="portal-tab" id="tab-approve" onclick="switchPortalTab('approve')" style="display:none">Approve</button>
     </div>
- 
+
     <!-- APPLY TAB -->
     <div id="portal-apply">
       <div class="leave-card">
@@ -839,13 +839,13 @@ document.addEventListener('gesturestart', function(e) {
       </div>
       <button id="submit-leave-btn" class="save-btn" onclick="submitLeave()" style="margin-top:4px;">Submit Application</button>
     </div>
- 
+
     <!-- HISTORY TAB -->
     <div id="portal-history" style="display:none;">
       <div class="portal-section-title">My Leave Requests</div>
       <div id="my-leave-list"><div class="empty-state">No requests yet</div></div>
     </div>
- 
+
     <!-- APPROVE TAB (Supervisor only) -->
     <div id="portal-approve" style="display:none;">
       <div class="portal-section-title">Pending Requests</div>
@@ -853,9 +853,9 @@ document.addEventListener('gesturestart', function(e) {
     </div>
   </div>
 </div>
- 
- 
- 
+
+
+
 <!-- ME SCREEN -->
 <div id="screen-me" class="screen">
   <div class="header">
@@ -888,7 +888,7 @@ document.addEventListener('gesturestart', function(e) {
     </button>
   </div>
 </div>
- 
+
 <!-- OWNER ADMIN -->
 <div id="screen-admin" class="screen">
   <div class="header">
@@ -896,13 +896,13 @@ document.addEventListener('gesturestart', function(e) {
     <div><div class="header-title">Admin Panel</div></div>
   </div>
   <div class="admin-scroll">
- 
+
     <!-- User List -->
     <div>
       <div class="admin-section-title">All Users</div>
       <div id="admin-user-list"><div class="empty-state">Loading...</div></div>
     </div>
- 
+
     <!-- Add New User -->
     <div>
       <div class="admin-section-title">Add New User</div>
@@ -917,10 +917,10 @@ document.addEventListener('gesturestart', function(e) {
         <button class="admin-add-btn" onclick="addUser()">＋ Add User</button>
       </div>
     </div>
- 
+
   </div>
 </div>
- 
+
 <!-- BOTTOM NAV -->
 <div class="bottom-nav" id="bottom-nav">
   <button class="nav-btn active" id="nav-home" onclick="navTo('home')">
@@ -942,10 +942,10 @@ document.addEventListener('gesturestart', function(e) {
     <span class="nav-icon">👤</span>Me
   </button>
 </div>
- 
- 
+
+
 <div class="toast" id="toast"></div>
- 
+
 <script>
 // ── DATA ──
 const PRODUCTS = [
@@ -1074,14 +1074,14 @@ const PRODUCTS = [
   {s:'Others',c:'Oden',n:'Lobster Ball',cost:2.00,sell:3.00},
   {s:'Others',c:'Oden',n:'Oden Soup',cost:2.00,sell:3.00},
 ];
- 
+
 const CAT_ICONS = {
   'Buns & Rolls':'🥖','Cakes':'🎂','Desserts':'🍮','Muffins':'🧁',
   'Pastries & Puffs':'🥐','Pizza':'🍕','Sushi':'🍱','Sweets & Candies':'🍬',
   'Tart':'🥧','Drinks':'☕','Fruits':'🍎','Instant Cup Noodles':'🍜',
   'Mee':'🍝','Nasi':'🍚','Nasi Lemak':'🍛','Oden':'🍢',
 };
- 
+
 // State
 let state = {
   staff: null,
@@ -1094,7 +1094,7 @@ let state = {
   doPhotos: [],
   doNumber: '',
 };
- 
+
 // Load from localStorage
 const APP_VERSION = 'v2';
 function loadState() {
@@ -1134,7 +1134,7 @@ if (state.loggedIn && state.staff) {
   state.loggedIn = false;
   showScreen('screen-login');
 }
- 
+
 // ── NAVIGATION ──
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -1165,17 +1165,17 @@ function populateInvoiceDateSelects() {
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const now = new Date();
   const curD = now.getDate(), curM = now.getMonth(), curY = now.getFullYear();
- 
+
   ['invoice-date','pickup-date'].forEach(prefix => {
     const saved = prefix === 'invoice-date' ? state.invoiceDate : state.pickupDate;
     let sD = curD, sM = curM + 1, sY = curY;
     if (saved) { const p = saved.split('-'); sY = +p[0]; sM = +p[1]; sD = +p[2]; }
- 
+
     const dSel = document.getElementById(prefix+'-d');
     const mSel = document.getElementById(prefix+'-m');
     const ySel = document.getElementById(prefix+'-y');
     if (!dSel) return;
- 
+
     dSel.innerHTML = Array.from({length:31},(_,i) =>
       `<option value="${String(i+1).padStart(2,'0')}" ${i+1===sD?'selected':''}>${String(i+1).padStart(2,'0')}</option>`
     ).join('');
@@ -1187,14 +1187,14 @@ function populateInvoiceDateSelects() {
     ).join('');
   });
 }
- 
+
 function getInvoiceDate(prefix) {
   const d = document.getElementById(prefix+'-d').value;
   const m = document.getElementById(prefix+'-m').value;
   const y = document.getElementById(prefix+'-y').value;
   return `${y}-${m}-${d}`;
 }
- 
+
 function goPhoto() {
   // Clear all previous invoice data
   state.doPhotos = [];
@@ -1205,7 +1205,7 @@ function goPhoto() {
   state.pickupDate = null;
   state.invoiceRemarks = '';
   saveState();
- 
+
   showScreen('screen-photo');
   document.getElementById('do-number').value = '';
   populateInvoiceDateSelects();
@@ -1214,9 +1214,9 @@ function goPhoto() {
   document.getElementById('invoice-remarks').value = '';
   renderPhotoGrid();
 }
- 
- 
- 
+
+
+
 function getCategories() {
   const map = {};
   PRODUCTS.forEach(p => {
@@ -1226,13 +1226,13 @@ function getCategories() {
   });
   return map;
 }
- 
+
 function renderCategories() {
   const map = getCategories();
   const list = document.getElementById('category-list');
   const filled = Object.keys(state.records).length;
   document.getElementById('cat-header-sub').textContent = '';
- 
+
   let html = '';
   let lastSupplier = null;
   Object.values(map).forEach(({ supplier, cat, items }) => {
@@ -1256,20 +1256,20 @@ function renderCategories() {
   });
   list.innerHTML = html;
 }
- 
+
 function openCategory(cat) {
   state.currentCategory = cat;
   renderItems(cat);
   showScreen('screen-items');
 }
- 
+
 // ── ITEMS ──
 function renderItems(cat) {
   const items = PRODUCTS.filter(p => p.c === cat);
   const done = items.filter(i => state.records[i.n]).length;
   document.getElementById('items-header-title').textContent = cat;
   document.getElementById('items-header-sub').textContent = '';
- 
+
   const list = document.getElementById('item-list');
   list.innerHTML = items.map(p => {
     const rec = state.records[p.n];
@@ -1285,7 +1285,7 @@ function renderItems(cat) {
     </div>`;
   }).join('');
 }
- 
+
 // ── ITEM FORM ──
 function openItem(name) {
   const p = PRODUCTS.find(x => x.n === name);
@@ -1306,7 +1306,7 @@ function openItem(name) {
   renderForm(p);
   showScreen('screen-form');
 }
- 
+
 function renderForm(p) {
   document.getElementById('form-item-name').textContent = p.n;
   document.getElementById('form-item-cat').textContent = `${p.c} · ${p.s}`;
@@ -1324,7 +1324,7 @@ function renderForm(p) {
   renderRejectPhotoSection();
   updateCalc();
 }
- 
+
 function toggleDiscount() {
   state.discountOn = !state.discountOn;
   if (!state.discountOn) state.formData.discount_qty = null;
@@ -1334,9 +1334,9 @@ function toggleDiscount() {
   if (state.discountOn) document.getElementById('fld-discount_qty').textContent = state.formData.discount_qty ?? '—';
   updateCalc();
 }
- 
+
 function updateCalc() {}
- 
+
 function saveItem() {
   const p = PRODUCTS.find(x => x.n === state.currentItem);
   if (!p) return;
@@ -1352,7 +1352,7 @@ function saveItem() {
     document.getElementById('reject-photo-section').scrollIntoView({behavior:'smooth'});
     return;
   }
- 
+
   state.records[state.currentItem] = {
     ...f,
     opening, restock, return_item: ret, rejected: rejectedQty, closing,
@@ -1366,11 +1366,11 @@ function saveItem() {
   showToast('Saved ✓');
   setTimeout(() => goItems(), 600);
 }
- 
+
 // ── NUMPAD ──
 let numpadTarget = null;
 let numpadStr = '';
- 
+
 function openNumpad(field, label) {
   numpadTarget = field;
   numpadStr = state.formData[field] != null ? String(state.formData[field]) : '';
@@ -1397,7 +1397,7 @@ function numpadOK() {
   closeNumpad();
   updateCalc();
 }
- 
+
 function renderRejectPhotoSection() {
   const rejected = state.formData.rejected;
   const section = document.getElementById('reject-photo-section');
@@ -1414,7 +1414,7 @@ function renderRejectPhotoSection() {
     photos.length ? `${photos.length} photo${photos.length>1?'s':''} uploaded ✓` : 'No photo uploaded yet';
   document.getElementById('reject-photo-status').style.color = photos.length ? 'var(--green)' : 'var(--text3)';
 }
- 
+
 function addRejectPhoto(input) {
   const file = input.files[0];
   if (!file) return;
@@ -1427,14 +1427,14 @@ function addRejectPhoto(input) {
   };
   reader.readAsDataURL(file);
 }
- 
+
 function removeRejectPhoto(i) {
   state.formData.rejectPhotos.splice(i, 1);
   renderRejectPhotoSection();
 }
- 
- 
- 
+
+
+
 // ── PHOTO ──
 function addPhoto(input) {
   const file = input.files[0];
@@ -1475,11 +1475,11 @@ function saveDO() {
   // Auto send to Google Sheet
   sendInvoiceToSheet(true);
 }
- 
- 
+
+
 // ── FIREBASE ──
 const FB_URL = 'https://pick-and-pack-72e34-default-rtdb.asia-southeast1.firebasedatabase.app';
- 
+
 async function fbGet(path) {
   const res = await fetch(FB_URL + path + '.json');
   return res.ok ? res.json() : null;
@@ -1500,10 +1500,10 @@ async function fbUpdate(path, data) {
   const res = await fetch(FB_URL + path + '.json', {method:'PATCH', body:JSON.stringify(data)});
   if (!res.ok) throw new Error('Firebase write failed: ' + res.status);
 }
- 
+
 // ── LOGIN ──
 let loginPin = '';
- 
+
 function loginKey(k) {
   if (loginPin.length >= 4) return;
   loginPin += k;
@@ -1512,24 +1512,24 @@ function loginKey(k) {
     setTimeout(checkPin, 150);
   }
 }
- 
+
 function loginDel() {
   loginPin = loginPin.slice(0, -1);
   updatePinDots();
   document.getElementById('login-error').textContent = '';
 }
- 
+
 function updatePinDots() {
   for (let i = 0; i < 4; i++) {
     document.getElementById('dot-' + i).classList.toggle('filled', i < loginPin.length);
   }
 }
- 
+
 async function checkPin() {
   document.getElementById('login-error').textContent = '';
   const dots = document.querySelectorAll('.pin-dot');
   dots.forEach(d => d.style.background = 'var(--accent2)');
- 
+
   try {
     const data = await fbGet('/users');
     if (!data) {
@@ -1569,7 +1569,7 @@ async function checkPin() {
     loginPin = ''; updatePinDots();
   }
 }
- 
+
 // ── LOGOUT ──
 function logout() {
   state.staff = null;
@@ -1584,9 +1584,9 @@ function logout() {
   document.getElementById('bottom-nav').classList.remove('owner-nav');
   showScreen('screen-login');
 }
- 
- 
- 
+
+
+
 // ── BOTTOM NAV ──
 const NAV_SCREENS = {
   home: 'screen-home',
@@ -1596,20 +1596,20 @@ const NAV_SCREENS = {
   admin: 'screen-admin',
   me: 'screen-me',
 };
- 
+
 function showBottomNav() {
   document.getElementById('bottom-nav').classList.add('visible');
 }
 function hideBottomNav() {
   document.getElementById('bottom-nav').classList.remove('visible');
 }
- 
+
 function setActiveNav(tab) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   const btn = document.getElementById('nav-' + tab);
   if (btn) btn.classList.add('active');
 }
- 
+
 function navTo(tab) {
   setActiveNav(tab);
   if (tab === 'home') {
@@ -1627,7 +1627,7 @@ function navTo(tab) {
     goMe();
   }
 }
- 
+
 function goMe() {
   document.getElementById('me-name').textContent = state.staff || '—';
   const roleLabels = { owner: 'Owner', supervisor: 'Supervisor', staff: 'Staff' };
@@ -1646,7 +1646,7 @@ function goMe() {
   }
   showScreen('screen-me');
 }
- 
+
 function saveContactInfo() {
   const contactKey = 'contact_' + state.staff;
   const data = {
@@ -1656,7 +1656,7 @@ function saveContactInfo() {
   localStorage.setItem(contactKey, JSON.stringify(data));
   showToast('Contact info saved!');
 }
- 
+
 async function loadMeLeaveSummary() {
   const el = document.getElementById('me-leave-summary');
   try {
@@ -1679,45 +1679,45 @@ async function loadMeLeaveSummary() {
     el.innerHTML = '<div style="color:var(--text3);font-size:13px;">Failed to load</div>';
   }
 }
- 
- 
- 
+
+
+
 // ── STAFF PORTAL ──
 let leaveType = null;
 let leaveDuration = null; // "full" or "half"
 let leaveSession = null;  // "Morning" or "Afternoon" (half day only)
- 
+
 function populateDateSelects() {
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const now = new Date();
   const curD = now.getDate(), curM = now.getMonth(), curY = now.getFullYear();
- 
+
   ['leave-from','leave-to'].forEach(prefix => {
     const dSel = document.getElementById(prefix+'-d');
     const mSel = document.getElementById(prefix+'-m');
     const ySel = document.getElementById(prefix+'-y');
- 
+
     dSel.innerHTML = Array.from({length:31},(_,i)=>
       `<option value="${String(i+1).padStart(2,'0')}" ${i+1===curD?'selected':''}>${String(i+1).padStart(2,'0')}</option>`
     ).join('');
- 
+
     mSel.innerHTML = months.map((m,i)=>
       `<option value="${String(i+1).padStart(2,'0')}" ${i===curM?'selected':''}>${m}</option>`
     ).join('');
- 
+
     ySel.innerHTML = [curY, curY+1].map(y=>
       `<option value="${y}" ${y===curY?'selected':''}>${y}</option>`
     ).join('');
   });
 }
- 
+
 function getSelectDate(prefix) {
   const d = document.getElementById(prefix+'-d').value;
   const m = document.getElementById(prefix+'-m').value;
   const y = document.getElementById(prefix+'-y').value;
   return `${y}-${m}-${d}`;
 }
- 
+
 function goPortal() {
   leaveType = null;
   leaveDuration = null;
@@ -1744,7 +1744,7 @@ function goPortal() {
   }
   showScreen('screen-portal');
 }
- 
+
 function selectLeaveType(type) {
   leaveType = type;
   document.querySelectorAll('.leave-type-btn').forEach(b => b.classList.remove('selected'));
@@ -1753,7 +1753,7 @@ function selectLeaveType(type) {
   if (leaveDuration) document.getElementById('dur-' + leaveDuration).classList.add('selected');
   if (leaveSession) document.getElementById('sess-' + leaveSession.toLowerCase()).classList.add('selected');
 }
- 
+
 function selectDuration(dur) {
   leaveDuration = dur;
   document.getElementById('dur-full').classList.toggle('selected', dur === 'full');
@@ -1772,13 +1772,13 @@ function selectDuration(dur) {
     leaveSession = null;
   }
 }
- 
+
 function selectSession(session) {
   leaveSession = session;
   document.getElementById('sess-morning').classList.toggle('selected', session === 'Morning');
   document.getElementById('sess-afternoon').classList.toggle('selected', session === 'Afternoon');
 }
- 
+
 function switchPortalTab(tab) {
   document.getElementById('portal-apply').style.display = tab === 'apply' ? 'flex' : 'none';
   document.getElementById('portal-apply').style.flexDirection = 'column';
@@ -1789,7 +1789,7 @@ function switchPortalTab(tab) {
   if (tab === 'history') loadMyLeaves();
   if (tab === 'approve') loadPendingLeaves();
 }
- 
+
 async function submitLeave() {
   if (!leaveType) { showToast('⚠ Select leave type first!'); return; }
   if (!leaveDuration) { showToast('⚠ Select Full Day or Half Day!'); return; }
@@ -1810,11 +1810,11 @@ async function submitLeave() {
     status: 'pending',
     submittedAt: new Date().toISOString(),
   };
- 
+
   const btn = document.getElementById('submit-leave-btn');
   btn.disabled = true;
   btn.textContent = 'Submitting...';
- 
+
   try {
     await fbPush('/leaves', data);
     showToast('Application submitted!');
@@ -1833,7 +1833,7 @@ async function submitLeave() {
     btn.textContent = 'Submit Application';
   }
 }
- 
+
 async function loadMyLeaves() {
   const list = document.getElementById('my-leave-list');
   list.innerHTML = '<div class="empty-state">Loading...</div>';
@@ -1861,7 +1861,7 @@ async function loadMyLeaves() {
     list.innerHTML = '<div class="empty-state">Failed to load</div>';
   }
 }
- 
+
 async function loadPendingLeaves() {
   const list = document.getElementById('approve-leave-list');
   list.innerHTML = '<div class="empty-state">Loading...</div>';
@@ -1881,16 +1881,21 @@ async function loadPendingLeaves() {
         <div class="lr-dates">📅 ${r.from}${r.from !== r.to ? ' → ' + r.to : ''} &nbsp;&#183;&nbsp; ${r.timeLabel || 'Full Day'}</div>
         ${r.reason ? `<div class="lr-reason">"${r.reason}"</div>` : ''}
         <div class="approve-row">
-          <button class="approve-btn yes" onclick="approveLeave('${id}', 'approved')">✓ Approve</button>
-          <button class="approve-btn no" onclick="approveLeave('${id}', 'rejected')">✕ Reject</button>
+          <button class="approve-btn yes" onclick="approveLeave('${id}', 'approved', this)">✓ Approve</button>
+          <button class="approve-btn no" onclick="approveLeave('${id}', 'rejected', this)">✕ Reject</button>
         </div>
       </div>`).join('');
   } catch(e) {
     list.innerHTML = '<div class="empty-state">Failed to load</div>';
   }
 }
- 
-async function approveLeave(id, status) {
+
+async function approveLeave(id, status, btn) {
+  // Disable both buttons in the same card to prevent double click
+  const row = btn.closest('.approve-row');
+  const allBtns = row ? row.querySelectorAll('button') : [btn];
+  allBtns.forEach(b => b.disabled = true);
+  btn.textContent = status === 'approved' ? 'Approving...' : 'Rejecting...';
   try {
     const data = await fbGet('/leaves/' + id);
     await fbUpdate('/leaves/' + id, {status});
@@ -1911,9 +1916,11 @@ async function approveLeave(id, status) {
     loadPendingLeaves();
   } catch(e) {
     showToast('⚠ Failed. Check connection.');
+    allBtns.forEach(b => b.disabled = false);
+    btn.textContent = status === 'approved' ? '✓ Approve' : '✕ Reject';
   }
 }
- 
+
 async function cancelLeave(id, btn) {
   btn.disabled = true;
   btn.textContent = 'Cancelling...';
@@ -1937,11 +1944,11 @@ async function cancelLeave(id, btn) {
     btn.textContent = 'Cancel Application';
   }
 }
- 
- 
+
+
 // ── OWNER ADMIN ──
 let newUserRole = 'staff';
- 
+
 function goAdmin() {
   if (state.staffRole !== 'owner') { showToast('⚠ Access denied.'); return; }
   newUserRole = 'staff';
@@ -1952,13 +1959,13 @@ function goAdmin() {
   loadAdminUsers();
   showScreen('screen-admin');
 }
- 
+
 function selectNewRole(role) {
   newUserRole = role;
   document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
   document.getElementById('rb-' + role).classList.add('selected');
 }
- 
+
 async function loadAdminUsers() {
   const list = document.getElementById('admin-user-list');
   list.innerHTML = '<div class="empty-state">Loading...</div>';
@@ -1983,7 +1990,7 @@ async function loadAdminUsers() {
     list.innerHTML = '<div class="empty-state">Failed to load</div>';
   }
 }
- 
+
 async function addUser() {
   const name = document.getElementById('new-user-name').value.trim();
   const pin = String(document.getElementById('new-user-pin').value).trim();
@@ -2009,7 +2016,7 @@ async function addUser() {
     showToast('⚠ ' + (e.message || 'Failed. Check connection.'));
   }
 }
- 
+
 async function deleteUser(name) {
   if (!confirm('Delete user "' + name + '"?')) return;
   try {
@@ -2020,11 +2027,11 @@ async function deleteUser(name) {
     showToast('⚠ Failed. Check connection.');
   }
 }
- 
+
 // ── GOOGLE SHEET SYNC ──
 const GS_URL = 'https://script.google.com/macros/s/AKfycbzjNr7Rr9kL13nqUbqNiYhjnURGSkBfjjwYO-CSkNW-ZBV1iJtl4jiaONc84pyNnyc/exec';
 const GS_SECRET = '668811';
- 
+
 // Compress image to reduce base64 size before uploading
 function compressPhoto(dataUrl, maxWidth = 1200, quality = 0.75) {
   return new Promise(resolve => {
@@ -2040,7 +2047,7 @@ function compressPhoto(dataUrl, maxWidth = 1200, quality = 0.75) {
     img.src = dataUrl;
   });
 }
- 
+
 async function gsRequest(payload) {
   const res = await fetch(GS_URL, {
     method: 'POST',
@@ -2051,20 +2058,20 @@ async function gsRequest(payload) {
   if (!res.ok) throw new Error('HTTP ' + res.status);
   return res.json();
 }
- 
+
 async function sendInvoiceToSheet(autoSave = false) {
   if (!state.doPhotos || state.doPhotos.length === 0) {
     showToast('⚠ Upload invoice photo first!');
     return;
   }
- 
+
   const btn = document.getElementById('send-sheet-btn');
   btn.disabled = true;
- 
+
   const invoiceNumber = document.getElementById('do-number').value || '';
   const invoiceDate = getInvoiceDate('invoice-date');
   const pickupDate = getInvoiceDate('pickup-date');
- 
+
   try {
     // Step 1: Compress & upload each photo to Google Drive
     const photoUrls = [];
@@ -2085,7 +2092,7 @@ async function sendInvoiceToSheet(autoSave = false) {
       } catch(photoErr) {
         throw new Error(`Photo ${i+1} upload failed: ${photoErr.message}`);
       }
- 
+
       if (result && result.status === 'error') {
         throw new Error(`Photo ${i+1} Drive error: ${result.message}`);
       }
@@ -2095,7 +2102,7 @@ async function sendInvoiceToSheet(autoSave = false) {
         throw new Error(`Photo ${i+1} did not receive URL. Check App Script permissions.`);
       }
     }
- 
+
     // Step 2: Save invoice data + photo links to Google Sheet
     btn.textContent = 'Saving...';
     const invoiceResult = await gsRequest({
@@ -2110,11 +2117,11 @@ async function sendInvoiceToSheet(autoSave = false) {
       staff: state.staff || '',
       photoUrls,
     });
- 
+
     if (invoiceResult && invoiceResult.status === 'error') {
       throw new Error(`Sheet error: ${invoiceResult.message}`);
     }
- 
+
     // Clear all invoice data after successful save
     state.doPhotos = [];
     state.doNumber = '';
@@ -2124,7 +2131,7 @@ async function sendInvoiceToSheet(autoSave = false) {
     state.pickupDate = null;
     state.invoiceRemarks = '';
     saveState();
- 
+
     showToast(`Saved! ${photoUrls.length} photo(s) uploaded ✓`);
     if (autoSave) setTimeout(() => goHome(), 1500);
   } catch(e) {
@@ -2137,7 +2144,7 @@ async function sendInvoiceToSheet(autoSave = false) {
     btn.disabled = false;
   }
 }
- 
+
 // ── TOAST ──
 function showToast(msg) {
   const t = document.getElementById('toast');
