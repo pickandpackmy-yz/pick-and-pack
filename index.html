@@ -1069,13 +1069,22 @@ function getInvoiceDate(prefix) {
 }
  
 function goPhoto() {
+  // Clear all previous invoice data
+  state.doPhotos = [];
+  state.doNumber = '';
+  state.invoiceDate = null;
+  state.invoiceAmount = '';
+  state.pickupBy = '';
+  state.pickupDate = null;
+  state.invoiceRemarks = '';
+  saveState();
+ 
   showScreen('screen-photo');
-  document.getElementById('do-number').value = state.doNumber || '';
+  document.getElementById('do-number').value = '';
   populateInvoiceDateSelects();
-  document.getElementById('invoice-amount').value = state.invoiceAmount || '';
-  document.getElementById('pickup-by').value = state.pickupBy || '';
-  // pickup date populated in populateInvoiceDateSelects
-  document.getElementById('invoice-remarks').value = state.invoiceRemarks || '';
+  document.getElementById('invoice-amount').value = '';
+  document.getElementById('pickup-by').value = '';
+  document.getElementById('invoice-remarks').value = '';
   renderPhotoGrid();
 }
  
