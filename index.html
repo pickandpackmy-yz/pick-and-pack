@@ -783,7 +783,7 @@ body {
     </div>
     </div>
     <!-- Logout -->
-    <button onclick="logout()" style="width:100%;background:rgba(248,113,113,0.1);color:var(--red);border:1px solid rgba(248,113,113,0.3);border-radius:var(--radius);padding:14px;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:8px;">
+    <button onclick="logout()" style="width:100%;background:rgba(248,113,113,0.1);color:var(--red);border:1px solid rgba(248,113,113,0.3);border-radius:var(--radius);padding:14px;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:8px;margin-bottom:80px;">
       Log Out
     </button>
   </div>
@@ -950,7 +950,6 @@ const CAT_ICONS = {
 // State
 let state = {
   staff: null,
-  loggedIn: false,
   date: new Date().toLocaleDateString('en-MY',{day:'2-digit',month:'2-digit',year:'numeric'}),
   records: {}, // key: item name
   currentCategory: null,
@@ -972,26 +971,21 @@ function loadState() {
   }
   const saved = localStorage.getItem('stockState');
   if (saved) {
-    try { const s = JSON.parse(saved); Object.assign(state, s); } catch(e) {}
+    try {
+      const s = JSON.parse(saved);
+      // Never load staff or loggedIn from storage
+      delete s.staff;
+      delete s.loggedIn;
+      Object.assign(state, s);
+    } catch(e) {}
   }
-  // Login state uses sessionStorage - clears when browser is closed
-  state.loggedIn = sessionStorage.getItem('loggedIn') === 'true';
-  state.staff = sessionStorage.getItem('staff') || null;
 }
 function saveState() {
   localStorage.setItem('appVersion', APP_VERSION);
-  // Save loggedIn separately to sessionStorage
   const toSave = Object.assign({}, state);
-  delete toSave.loggedIn;
   delete toSave.staff;
+  delete toSave.loggedIn;
   localStorage.setItem('stockState', JSON.stringify(toSave));
-  if (state.loggedIn) {
-    sessionStorage.setItem('loggedIn', 'true');
-    sessionStorage.setItem('staff', state.staff || '');
-  } else {
-    sessionStorage.removeItem('loggedIn');
-    sessionStorage.removeItem('staff');
-  }
 }
 loadState();
 // Date display - always use today's date
@@ -1341,9 +1335,7 @@ function checkPin() {
     state.staff = user;
  
     saveState();
-    state.loggedIn = true;
     document.getElementById('home-staff-name').textContent = user;
-    saveState();
     showScreen('screen-home');
   } else {
     document.getElementById('login-error').textContent = 'Wrong PIN. Try again.';
@@ -1354,11 +1346,7 @@ function checkPin() {
  
 // ── LOGOUT ──
 function logout() {
-  state.loggedIn = false;
   state.staff = null;
-  sessionStorage.removeItem('loggedIn');
-  sessionStorage.removeItem('staff');
-  saveState();
   loginPin = '';
   updatePinDots();
   document.getElementById('login-error').textContent = '';
