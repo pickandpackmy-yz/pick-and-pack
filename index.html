@@ -799,6 +799,19 @@ document.addEventListener('gesturestart', function(e) {
           <div class="leave-type-btn" onclick="selectLeaveType('Emergency')" id="lt-Emergency">Emergency<br>Leave</div>
         </div>
         <div class="portal-section-title">Duration</div>
+        <!-- Full Day / Half Day toggle -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+          <div class="leave-type-btn" id="dur-full" onclick="selectDuration('full')" style="padding:10px;">Full Day</div>
+          <div class="leave-type-btn" id="dur-half" onclick="selectDuration('half')" style="padding:10px;">Half Day</div>
+        </div>
+        <!-- Morning / Afternoon (only shown for half day) -->
+        <div id="half-day-section" style="display:none;margin-bottom:12px;">
+          <div class="portal-label" style="margin-bottom:6px;">Session</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div class="leave-type-btn" id="sess-morning" onclick="selectSession('Morning')" style="padding:10px;">&#127749; Morning</div>
+            <div class="leave-type-btn" id="sess-afternoon" onclick="selectSession('Afternoon')" style="padding:10px;">&#127751; Afternoon</div>
+          </div>
+        </div>
         <div style="margin-bottom:10px;">
           <div class="portal-label" style="margin-bottom:6px;">From</div>
           <div style="display:grid;grid-template-columns:2fr 2fr 3fr;gap:6px;">
@@ -810,7 +823,7 @@ document.addEventListener('gesturestart', function(e) {
             </select>
           </div>
         </div>
-        <div style="margin-bottom:10px;">
+        <div id="leave-to-section" style="margin-bottom:10px;">
           <div class="portal-label" style="margin-bottom:6px;">To</div>
           <div style="display:grid;grid-template-columns:2fr 2fr 3fr;gap:6px;">
             <select id="leave-to-d" class="portal-input" style="margin:0;padding:10px 6px;">
@@ -1671,6 +1684,8 @@ async function loadMeLeaveSummary() {
  
 // ── STAFF PORTAL ──
 let leaveType = null;
+let leaveDuration = null; // "full" or "half"
+let leaveSession = null;  // "Morning" or "Afternoon" (half day only)
  
 function populateDateSelects() {
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -1705,7 +1720,11 @@ function getSelectDate(prefix) {
  
 function goPortal() {
   leaveType = null;
+  leaveDuration = null;
+  leaveSession = null;
   document.querySelectorAll('.leave-type-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('half-day-section').style.display = 'none';
+  document.getElementById('leave-to-section').style.display = 'block';
   populateDateSelects();
   document.getElementById('leave-reason').value = '';
   // Owner: only Approve tab. Staff/Supervisor: Apply + My Requests only
@@ -1730,6 +1749,34 @@ function selectLeaveType(type) {
   leaveType = type;
   document.querySelectorAll('.leave-type-btn').forEach(b => b.classList.remove('selected'));
   document.getElementById('lt-' + type).classList.add('selected');
+  // Re-apply duration/session selection highlight after leave type deselects all
+  if (leaveDuration) document.getElementById('dur-' + leaveDuration).classList.add('selected');
+  if (leaveSession) document.getElementById('sess-' + leaveSession.toLowerCase()).classList.add('selected');
+}
+ 
+function selectDuration(dur) {
+  leaveDuration = dur;
+  document.getElementById('dur-full').classList.toggle('selected', dur === 'full');
+  document.getElementById('dur-half').classList.toggle('selected', dur === 'half');
+  const halfSection = document.getElementById('half-day-section');
+  const toSection = document.getElementById('leave-to-section');
+  if (dur === 'half') {
+    halfSection.style.display = 'block';
+    toSection.style.display = 'none'; // half day = single date only
+    leaveSession = null;
+    document.getElementById('sess-morning').classList.remove('selected');
+    document.getElementById('sess-afternoon').classList.remove('selected');
+  } else {
+    halfSection.style.display = 'none';
+    toSection.style.display = 'block';
+    leaveSession = null;
+  }
+}
+ 
+function selectSession(session) {
+  leaveSession = session;
+  document.getElementById('sess-morning').classList.toggle('selected', session === 'Morning');
+  document.getElementById('sess-afternoon').classList.toggle('selected', session === 'Afternoon');
 }
  
 function switchPortalTab(tab) {
@@ -1745,15 +1792,21 @@ function switchPortalTab(tab) {
  
 async function submitLeave() {
   if (!leaveType) { showToast('⚠ Select leave type first!'); return; }
+  if (!leaveDuration) { showToast('⚠ Select Full Day or Half Day!'); return; }
+  if (leaveDuration === 'half' && !leaveSession) { showToast('⚠ Select Morning or Afternoon!'); return; }
   const from = getSelectDate('leave-from');
-  const to = getSelectDate('leave-to');
+  const to = leaveDuration === 'half' ? from : getSelectDate('leave-to');
   if (!from || !to) { showToast('⚠ Select dates!'); return; }
   if (to < from) { showToast('⚠ End date must be after start date!'); return; }
   const reason = document.getElementById('leave-reason').value;
+  const timeLabel = leaveDuration === 'full' ? 'Full Day' : leaveSession;
   const data = {
     staff: state.staff,
     type: leaveType,
     from, to, reason,
+    duration: leaveDuration,
+    session: leaveSession,
+    timeLabel,
     status: 'pending',
     submittedAt: new Date().toISOString(),
   };
@@ -1764,20 +1817,14 @@ async function submitLeave() {
  
   try {
     await fbPush('/leaves', data);
-    await gsRequest({
-      secret: GS_SECRET,
-      type: 'leave',
-      staff: state.staff,
-      leaveType,
-      from,
-      to,
-      reason: reason || '',
-      submittedAt: data.submittedAt,
-    });
     showToast('Application submitted!');
     leaveType = null;
+    leaveDuration = null;
+    leaveSession = null;
     document.querySelectorAll('.leave-type-btn').forEach(b => b.classList.remove('selected'));
     document.getElementById('leave-reason').value = '';
+    document.getElementById('half-day-section').style.display = 'none';
+    document.getElementById('leave-to-section').style.display = 'block';
     switchPortalTab('history');
   } catch(e) {
     showToast('⚠ Failed to submit. Check connection.');
@@ -1803,7 +1850,7 @@ async function loadMyLeaves() {
           <span class="lr-type">${r.type}</span>
           <span class="status-badge ${r.status}">${r.status.charAt(0).toUpperCase()+r.status.slice(1)}</span>
         </div>
-        <div class="lr-dates">📅 ${r.from} → ${r.to}</div>
+        <div class="lr-dates">📅 ${r.from}${r.from !== r.to ? ' → ' + r.to : ''} &nbsp;&#183;&nbsp; ${r.timeLabel || 'Full Day'}</div>
         ${r.reason ? `<div class="lr-reason">"${r.reason}"</div>` : ''}
         ${r.status === 'pending' ? `
         <div class="approve-row" style="margin-top:8px;">
@@ -1831,7 +1878,7 @@ async function loadPendingLeaves() {
           <span class="lr-name">${r.staff}</span>
           <span class="lr-type">${r.type}</span>
         </div>
-        <div class="lr-dates">📅 ${r.from} → ${r.to}</div>
+        <div class="lr-dates">📅 ${r.from}${r.from !== r.to ? ' → ' + r.to : ''} &nbsp;&#183;&nbsp; ${r.timeLabel || 'Full Day'}</div>
         ${r.reason ? `<div class="lr-reason">"${r.reason}"</div>` : ''}
         <div class="approve-row">
           <button class="approve-btn yes" onclick="approveLeave('${id}', 'approved')">✓ Approve</button>
@@ -1847,16 +1894,19 @@ async function approveLeave(id, status) {
   try {
     const data = await fbGet('/leaves/' + id);
     await fbUpdate('/leaves/' + id, {status});
-    // Update Google Sheet
-    await gsRequest({
-      secret: GS_SECRET,
-      type: 'updateLeave',
-      staff: data.staff,
-      leaveType: data.type,
-      from: data.from,
-      to: data.to,
-      status: status,
-    });
+    if (status === 'approved') {
+      await gsRequest({
+        secret: GS_SECRET,
+        type: 'leave',
+        staff: data.staff,
+        leaveType: data.type,
+        from: data.from,
+        to: data.to,
+        timeLabel: data.timeLabel || 'Full Day',
+        reason: data.reason || '',
+        submittedAt: data.submittedAt,
+      });
+    }
     showToast(status === 'approved' ? 'Approved!' : 'Rejected');
     loadPendingLeaves();
   } catch(e) {
