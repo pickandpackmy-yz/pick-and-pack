@@ -1718,23 +1718,36 @@ async function sendInvoiceToSheet(autoSave = false) {
     // Step 1: Compress & upload each photo to Google Drive
     const photoUrls = [];
     for (let i = 0; i < state.doPhotos.length; i++) {
-      btn.textContent = `上传照片 ${i+1}/${state.doPhotos.length}...`;
+      btn.textContent = `Uploading photo ${i+1}/${state.doPhotos.length}...`;
       const compressed = await compressPhoto(state.doPhotos[i]);
       const base64 = compressed.split(',')[1];
-      const result = await gsRequest({
-        secret: GS_SECRET,
-        type: 'photo',
-        imageBase64: base64,
-        fileName: `invoice_${invoiceNumber}_${i+1}.jpg`,
-        invoiceNumber: invoiceNumber,
-        date: invoiceDate,
-      });
-      if (result && result.url) photoUrls.push(result.url);
+      let result;
+      try {
+        result = await gsRequest({
+          secret: GS_SECRET,
+          type: 'photo',
+          imageBase64: base64,
+          fileName: `invoice_${invoiceNumber}_${i+1}.jpg`,
+          invoiceNumber: invoiceNumber,
+          date: invoiceDate,
+        });
+      } catch(photoErr) {
+        throw new Error(`照片 ${i+1} 上传失败: ${photoErr.message}`);
+      }
+ 
+      if (result && result.status === 'error') {
+        throw new Error(`照片 ${i+1} Drive 错误: ${result.message}`);
+      }
+      if (result && result.url) {
+        photoUrls.push(result.url);
+      } else {
+        throw new Error(`照片 ${i+1} 没有收到 URL，请检查 App Script 权限`);
+      }
     }
  
     // Step 2: Save invoice data + photo links to Google Sheet
-    btn.textContent = '保存中...';
-    await gsRequest({
+    btn.textContent = 'Saving...';
+    const invoiceResult = await gsRequest({
       secret: GS_SECRET,
       type: 'invoice',
       invoiceNumber,
@@ -1747,11 +1760,17 @@ async function sendInvoiceToSheet(autoSave = false) {
       photoUrls,
     });
  
-    showToast('Saved & Sent ✓');
-    if (autoSave) setTimeout(() => goHome(), 1200);
-  } catch(e) {
-    showToast('⚠ Failed to send. Check connection.');
+    if (invoiceResult && invoiceResult.status === 'error') {
+      throw new Error(`Sheet 写入失败: ${invoiceResult.message}`);
+    }
+ 
+    showToast(`Saved! ${photoUrls.length} photo(s) uploaded ✓`);
     if (autoSave) setTimeout(() => goHome(), 1500);
+  } catch(e) {
+    console.error('Invoice save error:', e);
+    // Show the actual error message so we know what went wrong
+    showToast('⚠ ' + (e.message || 'Failed. Check connection.'));
+    if (autoSave) setTimeout(() => goHome(), 3000);
   } finally {
     btn.textContent = 'Save';
     btn.disabled = false;
