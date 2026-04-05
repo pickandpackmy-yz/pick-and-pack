@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Stock Report</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f0f0f;
+  --surface: #1a1a1a;
+  --surface2: #242424;
+  --surface3: #2e2e2e;
+  --border: #333;
+  --text: #f0f0f0;
+  --text2: #999;
+  --text3: #666;
+  --accent: #f5c842;
+  --accent2: #e8a020;
+  --green: #4ade80;
+  --red: #f87171;
+  --blue: #60a5fa;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+/* ── SCREENS ── */
+.screen { display: none; min-height: 100dvh; }
+.screen.active { display: flex; flex-direction: column; }
+
+/* ── HEADER ── */
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 16px;
+  display: flex; align-items: center; gap: 12px;
+  position: sticky; top: 0; z-index: 100;
+}
+.header-back {
+  width: 36px; height: 36px;
+  background: var(--surface2);
+  border: none; border-radius: 50%;
+  color: var(--text); font-size: 18px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.header-title { font-size: 15px; font-weight: 600; flex: 1; }
+.header-sub { font-size: 12px; color: var(--text2); margin-top: 1px; }
+.header-action {
+  background: var(--accent); color: #000;
+  border: none; border-radius: var(--radius-sm);
+  padding: 8px 14px; font-size: 13px; font-weight: 600;
+  cursor: pointer; font-family: 'DM Sans', sans-serif;
+  white-space: nowrap;
+}
+.header-action:disabled { opacity: 0.4; }
+
+/* ── HOME SCREEN ── */
+#screen-home {
+  background: var(--bg);
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+}
+.home-center {
+  position: relative;
+  overflow: hidden;
+  padding: 40px 32px;
+  text-align: center;
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.home-center::before { content: ""; }
+.home-tag {
+  display: inline-flex; align-items: center; gap: 6px; align-self: center;
+  background: rgba(245,200,66,0.12);
+  border: 1px solid rgba(245,200,66,0.25);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 11px; font-weight: 600;
+  color: var(--accent); letter-spacing: 0.5px;
+  margin-bottom: 16px;
+}
+.home-title {
+  font-size: 32px; font-weight: 700;
+  line-height: 1.15;
+  margin-bottom: 6px;
+  letter-spacing: -0.5px;
+}
+.home-title span { color: var(--accent); }
+.home-date {
+  font-size: 12px; color: var(--text3);
+  font-family: 'DM Mono', monospace;
+  margin-bottom: 12px;
+}
+.home-staff-badge {
+  display: inline-flex; align-items: center;
+  background: var(--surface);
+  border: 2px solid var(--green);
+  border-radius: 10px;
+  padding: 8px 18px;
+  font-size: 13px; font-weight: 500;
+}
+.home-staff-badge .badge-dot { display: none; }
+.home-section { padding: 0 20px; }
+.home-section-title { font-size: 11px; font-weight: 600; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
+
+
+
+.start-btn {
+  display: block; width: calc(100% - 32px); margin: 0 16px 16px;
+  background: var(--accent); color: #000;
+  border: none; border-radius: var(--radius);
+  padding: 16px; font-size: 16px; font-weight: 600;
+  cursor: pointer; font-family: 'DM Sans', sans-serif;
+  transition: all 0.15s;
+}
+.start-btn:active { transform: scale(0.98); }
+.start-btn:disabled { opacity: 0.3; }
+
+.summary-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
+.summary-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+}
+.summary-card .card-label { font-size: 11px; color: var(--text2); margin-bottom: 4px; }
+.summary-card .card-value { font-size: 20px; font-weight: 600; font-family: 'DM Mono', monospace; }
+.summary-card .card-value.green { color: var(--green); }
+.summary-card .card-value.red { color: var(--red); }
+
+/* ── CATEGORY LIST ── */
+#screen-categories { background: var(--bg); }
+.category-list { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.cat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  display: flex; align-items: center; gap: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-decoration: none; color: inherit;
+}
+.cat-card:active { transform: scale(0.98); background: var(--surface2); }
+.cat-card .cat-icon { font-size: 24px; width: 40px; text-align: center; flex-shrink: 0; }
+.cat-card .cat-info { flex: 1; min-width: 0; }
+.cat-card .cat-name { font-size: 14px; font-weight: 500; }
+.cat-card .cat-count { font-size: 12px; color: var(--text2); margin-top: 2px; }
+.cat-card .cat-status { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.cat-card .cat-done { font-size: 12px; color: var(--green); font-weight: 500; }
+.cat-card .cat-arrow { color: var(--text3); font-size: 16px; }
+.progress-ring { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--text2); }
+
+.supplier-label {
+  font-size: 11px; font-weight: 600; color: var(--text3);
+  letter-spacing: 1px; text-transform: uppercase;
+  padding: 8px 4px 4px;
+}
+
+/* ── ITEM LIST ── */
+#screen-items { background: var(--bg); }
+.item-list { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+.item-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex; align-items: center; gap: 10px;
+}
+.item-card:active { background: var(--surface2); }
+.item-info { flex: 1; min-width: 0; }
+.item-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item-meta { font-size: 11px; color: var(--text2); margin-top: 3px; font-family: 'DM Mono', monospace; }
+.item-diff { font-size: 13px; font-weight: 600; font-family: 'DM Mono', monospace; flex-shrink: 0; }
+
+/* ── ITEM FORM ── */
+#screen-form { background: var(--bg); }
+.form-scroll { flex: 1; overflow-y: auto; padding: 12px 16px; }
+
+.form-hero {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+.form-item-name { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+.form-item-cat { font-size: 12px; color: var(--text2); }
+.form-prices { display: flex; gap: 16px; margin-top: 8px; }
+.form-price-item { font-size: 12px; color: var(--text2); }
+.form-price-item span { color: var(--text); font-weight: 500; }
+
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.form-field { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; }
+.form-field.full { grid-column: 1 / -1; }
+.form-field.highlight { border-color: var(--accent); background: rgba(245,200,66,0.05); }
+.form-field.danger { border-color: var(--red); background: rgba(248,113,113,0.05); }
+.form-label { font-size: 10px; font-weight: 600; color: var(--text3); letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 6px; }
+.form-input {
+  background: none; border: none; outline: none;
+  font-size: 22px; font-weight: 500; font-family: 'DM Mono', monospace;
+  color: var(--text); width: 100%;
+  -moz-appearance: textfield;
+}
+.form-input::-webkit-outer-spin-button,
+.form-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.form-input::placeholder { color: var(--text3); }
+.form-hint { font-size: 11px; color: var(--text3); margin-top: 4px; }
+
+
+.calc-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; }
+.calc-key { font-size: 12px; color: var(--text2); }
+.calc-val { font-size: 13px; font-family: 'DM Mono', monospace; font-weight: 500; }
+.calc-divider { height: 1px; background: var(--border); margin: 6px 0; }
+.calc-diff-row { display: flex; justify-content: space-between; align-items: center; margin-top: 2px; }
+.calc-diff-label { font-size: 13px; font-weight: 600; }
+.calc-diff-val { font-size: 20px; font-weight: 600; font-family: 'DM Mono', monospace; }
+.calc-diff-val.zero { color: var(--text2); }
+.calc-diff-val.pos { color: var(--green); }
+.calc-diff-val.neg { color: var(--red); }
+
+.discount-section { margin-bottom: 16px; }
+.discount-toggle { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; cursor: pointer; }
+.toggle-switch { width: 40px; height: 22px; background: var(--surface3); border-radius: 11px; position: relative; transition: background 0.2s; flex-shrink: 0; }
+.toggle-switch.on { background: var(--accent2); }
+.toggle-switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; background: white; border-radius: 50%; transition: transform 0.2s; }
+.toggle-switch.on::after { transform: translateX(18px); }
+.toggle-label { font-size: 13px; font-weight: 500; flex: 1; }
+.toggle-sub { font-size: 11px; color: var(--text2); }
+
+.remarks-field { margin-bottom: 16px; }
+.remarks-input {
+  width: 100%; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 12px 14px;
+  font-size: 14px; font-family: 'DM Sans', sans-serif;
+  color: var(--text); outline: none; resize: none; height: 70px;
+}
+.remarks-input::placeholder { color: var(--text3); }
+
+.save-btn {
+  display: block; width: 100%; margin-bottom: 20px;
+  background: var(--accent); color: #000;
+  border: none; border-radius: var(--radius);
+  padding: 16px; font-size: 15px; font-weight: 600;
+  cursor: pointer; font-family: 'DM Sans', sans-serif;
+  transition: all 0.15s;
+}
+.save-btn:active { transform: scale(0.98); }
+
+/* ── NUMPAD ── */
+.numpad-overlay {
+  display: none; position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.7); flex-direction: column; justify-content: flex-end;
+}
+.numpad-overlay.open { display: flex; }
+.numpad-sheet {
+  background: var(--surface);
+  border-radius: 20px 20px 0 0;
+  padding: 16px;
+}
+.numpad-field-label { font-size: 11px; color: var(--text3); text-align: center; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+.numpad-value { font-size: 36px; font-weight: 500; font-family: 'DM Mono', monospace; text-align: center; margin-bottom: 16px; color: var(--accent); min-height: 44px; }
+.numpad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px; }
+.numpad-key {
+  background: var(--surface2); border: none; border-radius: var(--radius);
+  color: var(--text); font-size: 20px; font-weight: 500;
+  padding: 16px; cursor: pointer; font-family: 'DM Sans', sans-serif;
+  transition: all 0.1s;
+}
+.numpad-key:active { background: var(--surface3); transform: scale(0.95); }
+.numpad-key.del { background: var(--surface3); font-size: 18px; }
+.numpad-key.ok { background: var(--accent); color: #000; font-weight: 700; }
+.numpad-close { display: block; width: 100%; background: var(--surface2); border: none; border-radius: var(--radius); padding: 14px; color: var(--text2); font-size: 14px; cursor: pointer; font-family: 'DM Sans', sans-serif; margin-top: 4px; }
+
+
+/* ── LOGIN SCREEN ── */
+#screen-login {
+  background: var(--bg);
+  align-items: center; justify-content: center;
+  padding: 32px 24px;
+}
+.login-logo {
+  width: 70px; height: 70px;
+  background: var(--accent);
+  border-radius: 20px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32px; margin-bottom: 20px;
+}
+.login-title { font-size: 22px; font-weight: 600; margin-bottom: 4px; text-align: center; }
+.login-sub { font-size: 13px; color: var(--text2); margin-bottom: 40px; text-align: center; }
+.login-box {
+  width: 100%; max-width: 320px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 24px;
+}
+.login-label { font-size: 11px; font-weight: 600; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
+.pin-dots { display: flex; justify-content: center; gap: 14px; margin-bottom: 28px; }
+.pin-dot {
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--surface3); border: 2px solid var(--border);
+  transition: all 0.15s;
+}
+.pin-dot.filled { background: var(--accent); border-color: var(--accent); }
+.login-numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.login-key {
+  background: var(--surface2); border: none; border-radius: var(--radius);
+  color: var(--text); font-size: 22px; font-weight: 500;
+  padding: 18px; cursor: pointer; font-family: 'DM Sans', sans-serif;
+  transition: all 0.1s;
+}
+.login-key:active { background: var(--surface3); transform: scale(0.95); }
+.login-key.del { font-size: 18px; background: var(--surface3); }
+.login-key.empty { background: none; cursor: default; }
+.login-error { font-size: 13px; color: var(--red); text-align: center; margin-top: 16px; min-height: 20px; }
+
+
+/* ── STAFF PORTAL ── */
+#screen-portal { background: var(--bg); }
+.portal-scroll { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:14px; }
+.portal-section-title { font-size:11px; font-weight:600; color:var(--text3); letter-spacing:1px; text-transform:uppercase; margin-bottom:8px; }
+.leave-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px; }
+.leave-type-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px; }
+.leave-type-btn { background:var(--surface2); border:2px solid var(--border); border-radius:var(--radius-sm); padding:10px 6px; text-align:center; cursor:pointer; font-size:12px; font-weight:500; color:var(--text2); transition:all 0.15s; }
+.leave-type-btn.selected { border-color:var(--accent); color:var(--accent); background:rgba(245,200,66,0.08); }
+.portal-input { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px 14px; font-size:14px; font-family:'DM Sans',sans-serif; color:var(--text); outline:none; margin-bottom:10px; }
+.portal-input::placeholder { color:var(--text3); }
+.portal-date-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
+.portal-label { font-size:11px; color:var(--text3); margin-bottom:4px; }
+.leave-request-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px; display:flex; flex-direction:column; gap:6px; }
+.leave-request-card .lr-header { display:flex; justify-content:space-between; align-items:center; }
+.leave-request-card .lr-name { font-size:13px; font-weight:600; }
+.leave-request-card .lr-type { font-size:11px; font-weight:600; padding:3px 8px; border-radius:20px; background:rgba(245,200,66,0.15); color:var(--accent); }
+.leave-request-card .lr-dates { font-size:12px; color:var(--text2); }
+.leave-request-card .lr-reason { font-size:12px; color:var(--text2); font-style:italic; }
+.status-badge { font-size:11px; font-weight:600; padding:3px 10px; border-radius:20px; }
+.status-badge.pending { background:rgba(96,165,250,0.15); color:var(--blue); }
+.status-badge.approved { background:rgba(74,222,128,0.15); color:var(--green); }
+.status-badge.rejected { background:rgba(248,113,113,0.15); color:var(--red); }
+.approve-row { display:flex; gap:8px; margin-top:6px; }
+.approve-btn { flex:1; padding:8px; border:none; border-radius:var(--radius-sm); font-size:13px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; }
+.approve-btn.yes { background:rgba(74,222,128,0.2); color:var(--green); }
+.approve-btn.no { background:rgba(248,113,113,0.2); color:var(--red); }
+.portal-tabs { display:flex; gap:6px; margin-bottom:4px; }
+.portal-tab { flex:1; padding:10px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13px; font-weight:500; cursor:pointer; text-align:center; color:var(--text2); font-family:'DM Sans',sans-serif; }
+.portal-tab.active { background:var(--accent); color:#000; border-color:var(--accent); }
+.empty-state { text-align:center; color:var(--text3); font-size:13px; padding:32px 0; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--green); color: #000;
+  padding: 10px 20px; border-radius: 40px;
+  font-size: 13px; font-weight: 600; opacity: 0; transition: all 0.3s; z-index: 999;
+  white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── PHOTO SCREEN ── */
+#screen-photo { background: var(--bg); }
+.photo-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 20px; }
+.photo-preview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; max-width: 360px; }
+.photo-thumb { aspect-ratio: 4/3; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; position: relative; }
+.photo-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.photo-thumb .remove-btn { position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; background: rgba(0,0,0,0.7); border: none; border-radius: 50%; color: white; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.photo-add-btn {
+  width: 80px; height: 80px;
+  background: var(--surface); border: 2px dashed var(--border);
+  border-radius: var(--radius); cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  font-size: 28px; color: var(--text3);
+  transition: all 0.15s;
+}
+.photo-add-btn:active { border-color: var(--accent); color: var(--accent); }
+.photo-add-label { font-size: 11px; color: var(--text3); }
+.photo-do-field { width: 100%; max-width: 360px; }
+.do-input {
+  width: 100%; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px 16px;
+  font-size: 16px; font-family: 'DM Mono', monospace;
+  color: var(--text); outline: none; text-align: center;
+  letter-spacing: 1px;
+}
+.do-input::placeholder { color: var(--text3); letter-spacing: 0; font-family: 'DM Sans', sans-serif; font-size: 14px; }
+.photo-hint { font-size: 12px; color: var(--text2); text-align: center; }
+.scan-btn {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 12px 20px;
+  font-size: 14px; font-weight: 500; cursor: pointer;
+  color: var(--text); font-family: 'DM Sans', sans-serif;
+}
+</style>
+</head>
+<body>
+<!-- LOGIN -->
+<div id="screen-login" class="screen">
+  <div class="login-logo">🏪</div>
+  <div class="login-title">Daily Stock Report</div>
+  <div class="login-sub">Enter your PIN to continue</div>
+  <div class="login-box">
+    <div class="login-label">Your PIN</div>
+    <div class="pin-dots">
+      <div class="pin-dot" id="dot-0"></div>
+      <div class="pin-dot" id="dot-1"></div>
+      <div class="pin-dot" id="dot-2"></div>
+      <div class="pin-dot" id="dot-3"></div>
+    </div>
+    <div class="login-numpad">
+      <button class="login-key" onclick="loginKey('7')">7</button>
+      <button class="login-key" onclick="loginKey('8')">8</button>
+      <button class="login-key" onclick="loginKey('9')">9</button>
+      <button class="login-key" onclick="loginKey('4')">4</button>
+      <button class="login-key" onclick="loginKey('5')">5</button>
+      <button class="login-key" onclick="loginKey('6')">6</button>
+      <button class="login-key" onclick="loginKey('1')">1</button>
+      <button class="login-key" onclick="loginKey('2')">2</button>
+      <button class="login-key" onclick="loginKey('3')">3</button>
+      <button class="login-key empty"></button>
+      <button class="login-key" onclick="loginKey('0')">0</button>
+      <button class="login-key del" onclick="loginDel()">⌫</button>
+    </div>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<!-- HOME -->
+<div id="screen-home" class="screen">
+  <div class="home-center">
+    <div class="home-tag">📦 Pick &amp; Pack</div>
+    <div class="home-title">Daily<br><span>Stock</span> Check</div>
+    <div class="home-date" id="home-date"></div>
+    <div class="home-staff-badge">
+      <span class="badge-dot"></span>
+      <span id="home-staff-name">—</span>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:10px; width:100%; margin-top:40px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;">
+        <button onclick="goCategories()" style="background:var(--accent);color:#000;border:none;border-radius:var(--radius);padding:20px 12px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;flex-direction:column;align-items:center;gap:8px;">
+          <span style="font-size:26px;">📦</span>Stock Check
+        </button>
+        <button onclick="goPhoto()" style="background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:20px 12px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;flex-direction:column;align-items:center;gap:8px;">
+          <span style="font-size:26px;">🧾</span>Invoice Photo
+        </button>
+        <button onclick="goPortal()" style="background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:20px 12px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;flex-direction:column;align-items:center;gap:8px;grid-column:1/-1;">
+          <span style="font-size:26px;">🗓️</span>Apply Leave
+        </button>
+      </div>
+      <button onclick="logout()" style="background:none;color:var(--text3);border:none;font-size:12px;padding:6px;cursor:pointer;font-family:'DM Sans',sans-serif;">Log Out</button>
+    </div>
+  </div>
+</div>
+
+<!-- CATEGORIES -->
+<div id="screen-categories" class="screen">
+  <div class="header">
+    <button class="header-back" onclick="goHome()">←</button>
+    <div>
+      <div class="header-title">Stock Categories</div>
+      <div class="header-sub" id="cat-header-sub"></div>
+    </div>
+    
+  </div>
+  <div class="category-list" id="category-list"></div>
+</div>
+
+<!-- ITEMS -->
+<div id="screen-items" class="screen">
+  <div class="header">
+    <button class="header-back" onclick="goCategories()">←</button>
+    <div>
+      <div class="header-title" id="items-header-title"></div>
+      <div class="header-sub" id="items-header-sub"></div>
+    </div>
+  </div>
+  <div class="item-list" id="item-list"></div>
+</div>
+
+<!-- FORM -->
+<div id="screen-form" class="screen">
+  <div class="header">
+    <button class="header-back" onclick="goItems()">←</button>
+    <div>
+      <div class="header-title" id="form-header-title">Enter Stock</div>
+    </div>
+  </div>
+  <div class="form-scroll">
+    <div class="form-hero">
+      <div class="form-item-name" id="form-item-name"></div>
+      <div class="form-item-cat" id="form-item-cat"></div>
+      <div class="form-prices" id="form-prices" style="margin-top:8px;"></div>
+    </div>
+</div>
+
+    <div class="form-grid">
+      <div class="form-field" onclick="openNumpad('opening','Opening Stock')">
+        <div class="form-label">Opening</div>
+        <div class="form-input" id="fld-opening" style="cursor:pointer">—</div>
+        <div class="form-hint">Start of day</div>
+      </div>
+      <div class="form-field highlight" onclick="openNumpad('restock','Restock (+)')">
+        <div class="form-label">Restock ＋</div>
+        <div class="form-input" id="fld-restock" style="cursor:pointer">—</div>
+        <div class="form-hint">New delivery</div>
+      </div>
+      <div class="form-field" onclick="openNumpad('return_item','Return (−)')">
+        <div class="form-label">Return −</div>
+        <div class="form-input" id="fld-return_item" style="cursor:pointer">—</div>
+        <div class="form-hint">Returned to supplier</div>
+      </div>
+      <div class="form-field danger" onclick="openNumpad('rejected','Rejected / Damaged −')">
+        <div class="form-label">Rejected / Damaged −</div>
+        <div class="form-input" id="fld-rejected" style="cursor:pointer">—</div>
+        <div class="form-hint">Damaged items</div>
+      </div>
+      <div class="form-field" onclick="openNumpad('closing','Closing Stock')">
+        <div class="form-label">Closing</div>
+        <div class="form-input" id="fld-closing" style="cursor:pointer">—</div>
+        <div class="form-hint">End of day count</div>
+      </div>
+    </div>
+
+    <div id="reject-photo-section" style="display:none;margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:600;color:#f87171;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px;">📸 Reject Photo Required</div>
+      <div style="background:rgba(248,113,113,0.08);border:1.5px solid rgba(248,113,113,0.4);border-radius:12px;padding:14px;">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:10px;">Upload photo proof of rejected/damaged item</div>
+        <div id="reject-photo-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;"></div>
+        <div style="display:flex;gap:10px;">
+          <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;cursor:pointer;font-size:13px;color:var(--text);">
+            📷 Camera
+            <input type="file" accept="image/*" capture="environment" style="display:none" onchange="addRejectPhoto(this)">
+          </label>
+          <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;cursor:pointer;font-size:13px;color:var(--text);">
+            🖼️ Gallery
+            <input type="file" accept="image/*" style="display:none" onchange="addRejectPhoto(this)">
+          </label>
+        </div>
+        <div id="reject-photo-status" style="font-size:11px;color:var(--text3);margin-top:8px;text-align:center;">No photo uploaded yet</div>
+      </div>
+    </div>
+
+    <div class="discount-section">
+      <div class="discount-toggle" onclick="toggleDiscount()">
+        <div class="toggle-switch" id="discount-toggle-sw"></div>
+        <div>
+          <div class="toggle-label">Discount 50% applied?</div>
+          <div class="toggle-sub" id="discount-sub">Tap to enable</div>
+        </div>
+      </div>
+      <div id="discount-qty-wrap" style="display:none;margin-top:8px;">
+        <div class="form-field" onclick="openNumpad('discount_qty','Discount 50% Qty')">
+          <div class="form-label">Discount Qty</div>
+          <div class="form-input" id="fld-discount_qty" style="cursor:pointer">—</div>
+        </div>
+      </div>
+    </div>
+
+
+
+    <div class="remarks-field">
+      <textarea class="remarks-input" id="fld-remarks" placeholder="Remarks (optional)..."></textarea>
+    </div>
+
+    <button class="save-btn" onclick="saveItem()">Save</button>
+  </div>
+</div>
+
+<!-- PHOTO -->
+<div id="screen-photo" class="screen">
+  <div class="header">
+    <button class="header-back" onclick="goHome()">←</button>
+    <div><div class="header-title">Upload Invoice Photo</div></div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:16px;">
+
+    <!-- Invoice Number -->
+    <div>
+      <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Invoice Number</div>
+      <input class="do-input" id="do-number" type="text" placeholder="Enter invoice number" inputmode="text" style="text-align:left;letter-spacing:0;font-family:'DM Sans',sans-serif;font-size:15px;">
+    </div>
+
+    <!-- Invoice Date -->
+    <div>
+      <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Invoice Date</div>
+      <input id="invoice-date" type="date" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;font-size:15px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;">
+    </div>
+
+    <!-- Invoice Amount -->
+    <div>
+      <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Invoice Amount (RM)</div>
+      <input id="invoice-amount" type="number" inputmode="decimal" placeholder="0.00" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;font-size:18px;font-family:'DM Mono',monospace;color:var(--text);outline:none;">
+    </div>
+
+    <!-- Pick Up Info -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div>
+        <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Pick Up By</div>
+        <input id="pickup-by" type="text" placeholder="Name" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;">
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Pick Up Date</div>
+        <input id="pickup-date" type="date" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;">
+      </div>
+    </div>
+
+    <!-- Upload buttons -->
+    <div>
+      <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Photos</div>
+      <div style="display:flex;gap:10px;">
+        <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px;cursor:pointer;font-size:14px;font-weight:500;color:var(--text);">
+          📷 Camera
+          <input type="file" accept="image/*" capture="environment" style="display:none" onchange="addPhoto(this)">
+        </label>
+        <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px;cursor:pointer;font-size:14px;font-weight:500;color:var(--text);">
+          🖼️ Gallery
+          <input type="file" accept="image/*" style="display:none" onchange="addPhoto(this)">
+        </label>
+      </div>
+    </div>
+
+    <!-- Remarks -->
+    <div>
+      <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Remarks</div>
+      <textarea id="invoice-remarks" placeholder="Optional..." style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;resize:none;height:80px;"></textarea>
+    </div>
+
+    <!-- Photo preview grid -->
+    <div id="photo-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"></div>
+
+  </div>
+
+  <!-- Save button at bottom -->
+  <div style="padding:16px;border-top:1px solid var(--border);background:var(--bg);">
+    <button class="save-btn" onclick="saveDO()" style="margin:0;">Save</button>
+  </div>
+</div>
+
+
+
+<!-- NUMPAD -->
+<div class="numpad-overlay" id="numpad-overlay" onclick="closeNumpadOutside(event)">
+  <div class="numpad-sheet">
+    <div class="numpad-field-label" id="numpad-label"></div>
+    <div class="numpad-value" id="numpad-display">—</div>
+    <div class="numpad-grid">
+      <button class="numpad-key" onclick="numpadKey('7')">7</button>
+      <button class="numpad-key" onclick="numpadKey('8')">8</button>
+      <button class="numpad-key" onclick="numpadKey('9')">9</button>
+      <button class="numpad-key" onclick="numpadKey('4')">4</button>
+      <button class="numpad-key" onclick="numpadKey('5')">5</button>
+      <button class="numpad-key" onclick="numpadKey('6')">6</button>
+      <button class="numpad-key" onclick="numpadKey('1')">1</button>
+      <button class="numpad-key" onclick="numpadKey('2')">2</button>
+      <button class="numpad-key" onclick="numpadKey('3')">3</button>
+      <button class="numpad-key del" onclick="numpadDel()">⌫</button>
+      <button class="numpad-key" onclick="numpadKey('0')">0</button>
+      <button class="numpad-key ok" onclick="numpadOK()">OK</button>
+    </div>
+    <button class="numpad-close" onclick="closeNumpad()">Cancel</button>
+  </div>
+</div>
+
+<!-- STAFF PORTAL -->
+<div id="screen-portal" class="screen">
+  <div class="header">
+    <button class="header-back" onclick="goHome()">←</button>
+    <div><div class="header-title">Staff Portal</div></div>
+  </div>
+  <div class="portal-scroll">
+    <div class="portal-tabs">
+      <button class="portal-tab active" id="tab-apply" onclick="switchPortalTab('apply')">Apply Leave</button>
+      <button class="portal-tab" id="tab-history" onclick="switchPortalTab('history')">My Requests</button>
+      <button class="portal-tab" id="tab-approve" onclick="switchPortalTab('approve')" id="tab-approve" style="display:none">Approve</button>
+    </div>
+
+    <!-- APPLY TAB -->
+    <div id="portal-apply">
+      <div class="leave-card">
+        <div class="portal-section-title" style="margin-bottom:12px;">Leave Type</div>
+        <div class="leave-type-grid">
+          <div class="leave-type-btn" onclick="selectLeaveType('Annual Leave')" id="lt-Annual Leave">Annual<br>Leave</div>
+          <div class="leave-type-btn" onclick="selectLeaveType('MC')" id="lt-MC">Medical<br>Certificate</div>
+          <div class="leave-type-btn" onclick="selectLeaveType('Emergency')" id="lt-Emergency">Emergency<br>Leave</div>
+        </div>
+        <div class="portal-section-title">Duration</div>
+        <div class="portal-date-row">
+          <div>
+            <div class="portal-label">From</div>
+            <input class="portal-input" style="margin:0" type="date" id="leave-from">
+          </div>
+          <div>
+            <div class="portal-label">To</div>
+            <input class="portal-input" style="margin:0" type="date" id="leave-to">
+          </div>
+        </div>
+        <div class="portal-section-title" style="margin-top:10px;">Reason</div>
+        <textarea class="portal-input" id="leave-reason" placeholder="Optional reason..." style="height:70px;resize:none;margin-bottom:0;"></textarea>
+      </div>
+      <button class="save-btn" onclick="submitLeave()" style="margin-top:4px;">Submit Application</button>
+    </div>
+
+    <!-- HISTORY TAB -->
+    <div id="portal-history" style="display:none;">
+      <div class="portal-section-title">My Leave Requests</div>
+      <div id="my-leave-list"><div class="empty-state">No requests yet</div></div>
+    </div>
+
+    <!-- APPROVE TAB (Supervisor only) -->
+    <div id="portal-approve" style="display:none;">
+      <div class="portal-section-title">Pending Requests</div>
+      <div id="approve-leave-list"><div class="empty-state">No pending requests</div></div>
+    </div>
+  </div>
+</div>
+
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DATA ──
+const PRODUCTS = [
+  // HoneyBites — Buns & Rolls
+  {s:'HoneyBites',c:'Buns & Rolls',n:'BBQ Pepperonish Beef',cost:3.10,sell:4.70},
+  {s:'HoneyBites',c:'Buns & Rolls',n:'Butter Cheese Bun',cost:2.40,sell:3.60},
+  {s:'HoneyBites',c:'Buns & Rolls',n:'Butter Milk Pack Bun',cost:5.40,sell:8.00},
+  {s:'HoneyBites',c:'Buns & Rolls',n:'Cheesy Sausage Bun',cost:2.95,sell:4.50},
+  {s:'HoneyBites',c:'Buns & Rolls',n:'Chicken Floss Bun Ori',cost:2.65,sell:4.00},
+  {s:'HoneyBites',c:'Buns & Rolls',n:'Chicken Floss Bun Spicy',cost:2.65,sell:4.00},
+  {s:'HoneyBites',c:'Buns & Rolls',n:'Chicken Floss Mayo Sausage Bun',cost:3.35,sell:5.00},
+  {s:'HoneyBites',c:'Buns & Rolls',n:'Chicken Frankie Bun',cost:2.10,sell:3.20},
+  {s:'HoneyBites',c:'Buns & Rolls',n:'Chocolate Chip & Cheese Pack Bun',cost:5.05,sell:7.60},
+  {s:'HoneyBites',c:'Buns & Rolls',n:'Chocolate Dome Bun',cost:3.10,sell:4.70},
+  {s:'HoneyBites',c:'Buns & Rolls',n:'Chocolate Rice Bun',cost:2.30,sell:3.50},
+  {s:'HoneyBites',c:'Buns & Rolls',n:'Garlic Bun',cost:2.25,sell:3.40},
+  {s:'HoneyBites',c:'Buns & Rolls',n:'Mexico Bun',cost:3.10,sell:4.70},
+  {s:'HoneyBites',c:'Buns & Rolls',n:'Mini Chicken Slice Bun',cost:2.70,sell:4.00},
+  {s:'HoneyBites',c:'Buns & Rolls',n:'Pandan Kaya Roll Bun',cost:2.40,sell:3.60},
+  {s:'HoneyBites',c:'Buns & Rolls',n:'Red Bean Bun',cost:2.40,sell:3.60},
+  {s:'HoneyBites',c:'Buns & Rolls',n:'Red Bean Pack Bun',cost:5.05,sell:7.60},
+  {s:'HoneyBites',c:'Buns & Rolls',n:'Salted Egg Cheese Bun',cost:3.20,sell:4.80},
+  {s:'HoneyBites',c:'Buns & Rolls',n:'Sausage Mayo Cheese Bun',cost:2.55,sell:3.90},
+  {s:'HoneyBites',c:'Buns & Rolls',n:'Sausage Pizza Bun',cost:2.55,sell:3.90},
+  {s:'HoneyBites',c:'Buns & Rolls',n:'Sugar Cheese Bun',cost:2.40,sell:3.60},
+  {s:'HoneyBites',c:'Buns & Rolls',n:'Sugar Cheese Pack Bun',cost:5.05,sell:7.60},
+  {s:'HoneyBites',c:'Buns & Rolls',n:'Twin Tower Bun',cost:2.65,sell:3.80},
+  {s:'HoneyBites',c:'Buns & Rolls',n:'Twin Tower Cheese Bun',cost:2.40,sell:3.80},
+  {s:'HoneyBites',c:'Buns & Rolls',n:'Yellow Coconut Bun',cost:2.40,sell:3.60},
+  // HoneyBites — Cakes
+  {s:'HoneyBites',c:'Cakes',n:'Mini Cup Cake',cost:3.05,sell:4.60},
+  {s:'HoneyBites',c:'Cakes',n:'Oreo Mousse Cake',cost:8.65,sell:13.00},
+  {s:'HoneyBites',c:'Cakes',n:'Red Velvet Cake Slice',cost:7.15,sell:10.80},
+  {s:'HoneyBites',c:'Cakes',n:'Tiramisu Cake Slice',cost:7.15,sell:10.80},
+  {s:'HoneyBites',c:'Cakes',n:'Tiramisu Mousse Cake',cost:8.65,sell:13.00},
+  // HoneyBites — Desserts
+  {s:'HoneyBites',c:'Desserts',n:'Pudding (Asst. Flavour)',cost:3.10,sell:4.70},
+  // HoneyBites — Muffins
+  {s:'HoneyBites',c:'Muffins',n:'Chocolate Chip Muffin',cost:3.35,sell:5.00},
+  {s:'HoneyBites',c:'Muffins',n:'Chocolate Oreo Muffin',cost:3.35,sell:5.00},
+  // HoneyBites — Pastries & Puffs
+  {s:'HoneyBites',c:'Pastries & Puffs',n:'Chicken Curry Puff',cost:2.40,sell:3.60},
+  {s:'HoneyBites',c:'Pastries & Puffs',n:'Chicken Siew Pau',cost:2.40,sell:3.60},
+  // HoneyBites — Pizza
+  {s:'HoneyBites',c:'Pizza',n:'(Slice) Cheesy Cheese Pizza',cost:4.67,sell:7.00},
+  {s:'HoneyBites',c:'Pizza',n:'(Slice) Hawaiian Chicken Pizza',cost:4.67,sell:7.00},
+  {s:'HoneyBites',c:'Pizza',n:'(Slice) Pepperonish Beef Pizza',cost:4.67,sell:7.00},
+  {s:'HoneyBites',c:'Pizza',n:'(Slice) Popcorn Chicken Pizza',cost:4.67,sell:7.00},
+  {s:'HoneyBites',c:'Pizza',n:'(Slice) Sausage Meatball Pizza',cost:4.67,sell:7.00},
+  // HoneyBites — Others
+  {s:'HoneyBites',c:'Sushi',n:'Sushi',cost:4.25,sell:6.50},
+  {s:'HoneyBites',c:'Sweets & Candies',n:'Lollipop',cost:2.65,sell:4.00},
+  {s:'HoneyBites',c:'Tart',n:'Egg Tart',cost:2.30,sell:3.50},
+  // Others — Desserts
+  {s:'Others',c:'Desserts',n:'Brownies Nutella',cost:12.00,sell:17.00},
+  {s:'Others',c:'Desserts',n:'Brownies Sea Salt',cost:10.00,sell:15.00},
+  {s:'Others',c:'Desserts',n:'Cream Horn',cost:10.00,sell:15.00},
+  {s:'Others',c:'Desserts',n:'Cream Puff Custard',cost:10.00,sell:15.00},
+  {s:'Others',c:'Desserts',n:'Cream Puff Whipped',cost:10.00,sell:15.00},
+  // Others — Drinks
+  {s:'Others',c:'Drinks',n:'Aik Cheong Teh Tarik',cost:2.55,sell:4.00},
+  {s:'Others',c:'Drinks',n:'Aik Cheong White Coffee',cost:2.55,sell:4.00},
+  {s:'Others',c:'Drinks',n:'Air Buah (Lemon)',cost:2.80,sell:5.00},
+  {s:'Others',c:'Drinks',n:'Air Buah (Longan)',cost:2.80,sell:5.00},
+  {s:'Others',c:'Drinks',n:'Air Buah (Peach)',cost:2.80,sell:5.00},
+  {s:'Others',c:'Drinks',n:'Boh 3in1 Tea Mix',cost:1.50,sell:4.00},
+  {s:'Others',c:'Drinks',n:'Indocafe Coffee-O',cost:1.50,sell:4.00},
+  {s:'Others',c:'Drinks',n:'Indocafe Coffemix 3in1',cost:1.40,sell:4.00},
+  {s:'Others',c:'Drinks',n:'Kopiko 3in1 Kaw',cost:1.45,sell:4.00},
+  {s:'Others',c:'Drinks',n:'Kopiko LA Coffee',cost:1.65,sell:4.00},
+  {s:'Others',c:'Drinks',n:'Milo 3in1',cost:2.05,sell:4.00},
+  {s:'Others',c:'Drinks',n:'Nescafe 3in1',cost:1.75,sell:4.00},
+  {s:'Others',c:'Drinks',n:'Ngupi Kopi O',cost:2.25,sell:4.00},
+  // Others — Fruits
+  {s:'Others',c:'Fruits',n:'Dragon Fruit',cost:5.00,sell:10.00},
+  {s:'Others',c:'Fruits',n:'Honey Ponkan',cost:2.00,sell:3.00},
+  {s:'Others',c:'Fruits',n:'HoneyDew',cost:5.00,sell:10.00},
+  {s:'Others',c:'Fruits',n:'Jambu Air',cost:5.00,sell:10.00},
+  {s:'Others',c:'Fruits',n:'Jambu Batu',cost:5.00,sell:10.00},
+  {s:'Others',c:'Fruits',n:'Longan',cost:5.00,sell:10.00},
+  {s:'Others',c:'Fruits',n:'Mango',cost:6.50,sell:14.00},
+  {s:'Others',c:'Fruits',n:'Nanas',cost:5.00,sell:10.00},
+  {s:'Others',c:'Fruits',n:'Orange (RM10)',cost:5.00,sell:10.00},
+  {s:'Others',c:'Fruits',n:'Orange (RM12)',cost:8.00,sell:12.00},
+  {s:'Others',c:'Fruits',n:'Papaya',cost:5.00,sell:10.00},
+  {s:'Others',c:'Fruits',n:'Watermelon (Red)',cost:5.00,sell:10.00},
+  {s:'Others',c:'Fruits',n:'Watermelon (Yellow)',cost:5.00,sell:10.00},
+  // Others — Instant Cup Noodles
+  {s:'Others',c:'Instant Cup Noodles',n:'Nong Shim Shin Ramyun (Small)',cost:5.20,sell:8.50},
+  {s:'Others',c:'Instant Cup Noodles',n:'Nong Shim Shin Ramyun Tomyum (Big)',cost:6.50,sell:11.90},
+  {s:'Others',c:'Instant Cup Noodles',n:'Nong Shim Stir Fry Shin Ramyun (Big)',cost:6.50,sell:11.90},
+  {s:'Others',c:'Instant Cup Noodles',n:'Nong Shim Stir Fry Shin Ramyun Cheese',cost:6.50,sell:11.90},
+  {s:'Others',c:'Instant Cup Noodles',n:'Samyang 2x Spicy Hot Chicken (Big)',cost:7.90,sell:11.90},
+  {s:'Others',c:'Instant Cup Noodles',n:'Samyang 2x Spicy Hot Chicken (Small)',cost:5.30,sell:8.50},
+  {s:'Others',c:'Instant Cup Noodles',n:'Samyang Carbonara (Big)',cost:7.90,sell:11.90},
+  {s:'Others',c:'Instant Cup Noodles',n:'Samyang Carbonara (Small)',cost:5.50,sell:8.50},
+  {s:'Others',c:'Instant Cup Noodles',n:'Samyang Cheese (Big)',cost:6.90,sell:11.90},
+  {s:'Others',c:'Instant Cup Noodles',n:'Samyang Cheese (Small)',cost:5.50,sell:8.50},
+  {s:'Others',c:'Instant Cup Noodles',n:'Samyang Hot Chicken (Big)',cost:6.90,sell:11.90},
+  {s:'Others',c:'Instant Cup Noodles',n:'Samyang Hot Chicken (Small)',cost:5.30,sell:8.50},
+  {s:'Others',c:'Instant Cup Noodles',n:'Samyang Rose (Big)',cost:7.90,sell:11.90},
+  // Others — Mee
+  {s:'Others',c:'Mee',n:'Mee Goreng',cost:4.00,sell:6.00},
+  {s:'Others',c:'Mee',n:'Mee Goreng Ayam',cost:7.00,sell:10.00},
+  {s:'Others',c:'Mee',n:'Mee Hoon Goreng',cost:6.00,sell:10.00},
+  // Others — Nasi
+  {s:'Others',c:'Nasi',n:'Nasi Goreng Ayam',cost:7.00,sell:12.00},
+  {s:'Others',c:'Nasi',n:'Nasi Kari Ayam',cost:7.00,sell:12.00},
+  // Others — Nasi Lemak
+  {s:'Others',c:'Nasi Lemak',n:'Nasi Lemak Classic',cost:4.00,sell:6.00},
+  {s:'Others',c:'Nasi Lemak',n:'Nasi Lemak Fried Chicken',cost:5.00,sell:8.00},
+  // Others — Oden
+  {s:'Others',c:'Oden',n:'Big Fish Ball',cost:1.00,sell:1.50},
+  {s:'Others',c:'Oden',n:'Bihun',cost:2.80,sell:4.20},
+  {s:'Others',c:'Oden',n:'Broccoli',cost:2.00,sell:3.00},
+  {s:'Others',c:'Oden',n:'Cheese Tofu',cost:2.50,sell:3.80},
+  {s:'Others',c:'Oden',n:'Crab Craw',cost:2.50,sell:3.80},
+  {s:'Others',c:'Oden',n:'Cuttle Fish',cost:3.00,sell:4.50},
+  {s:'Others',c:'Oden',n:'Daikon',cost:2.00,sell:3.00},
+  {s:'Others',c:'Oden',n:'Dumplings',cost:2.80,sell:4.20},
+  {s:'Others',c:'Oden',n:'Enoki Mushroom',cost:2.80,sell:4.20},
+  {s:'Others',c:'Oden',n:'Fish Fucuuk',cost:3.00,sell:4.50},
+  {s:'Others',c:'Oden',n:'Fried Fish Ball',cost:1.00,sell:1.50},
+  {s:'Others',c:'Oden',n:'Hot Dog',cost:1.50,sell:2.30},
+  {s:'Others',c:'Oden',n:'Instant Noodles',cost:2.80,sell:4.20},
+  {s:'Others',c:'Oden',n:'Lobster Ball',cost:2.00,sell:3.00},
+  {s:'Others',c:'Oden',n:'Oden Soup',cost:2.00,sell:3.00},
+];
+
+const CAT_ICONS = {
+  'Buns & Rolls':'🥖','Cakes':'🎂','Desserts':'🍮','Muffins':'🧁',
+  'Pastries & Puffs':'🥐','Pizza':'🍕','Sushi':'🍱','Sweets & Candies':'🍬',
+  'Tart':'🥧','Drinks':'☕','Fruits':'🍎','Instant Cup Noodles':'🍜',
+  'Mee':'🍝','Nasi':'🍚','Nasi Lemak':'🍛','Oden':'🍢',
+};
+
+// State
+let state = {
+  staff: null,
+  loggedIn: false,
+  date: new Date().toLocaleDateString('en-MY',{day:'2-digit',month:'2-digit',year:'numeric'}),
+  records: {}, // key: item name
+  currentCategory: null,
+  currentItem: null,
+  formData: {},
+  discountOn: false,
+  doPhotos: [],
+  doNumber: '',
+};
+
+// Load from localStorage
+const APP_VERSION = 'v2';
+function loadState() {
+  const ver = localStorage.getItem('appVersion');
+  if (ver !== APP_VERSION) {
+    localStorage.clear();
+    localStorage.setItem('appVersion', APP_VERSION);
+    return;
+  }
+  const saved = localStorage.getItem('stockState');
+  if (saved) {
+    try { const s = JSON.parse(saved); Object.assign(state, s); } catch(e) {}
+  }
+  // Login state uses sessionStorage - clears when browser is closed
+  state.loggedIn = sessionStorage.getItem('loggedIn') === 'true';
+  state.staff = sessionStorage.getItem('staff') || null;
+}
+function saveState() {
+  localStorage.setItem('appVersion', APP_VERSION);
+  // Save loggedIn separately to sessionStorage
+  const toSave = Object.assign({}, state);
+  delete toSave.loggedIn;
+  delete toSave.staff;
+  localStorage.setItem('stockState', JSON.stringify(toSave));
+  if (state.loggedIn) {
+    sessionStorage.setItem('loggedIn', 'true');
+    sessionStorage.setItem('staff', state.staff || '');
+  } else {
+    sessionStorage.removeItem('loggedIn');
+    sessionStorage.removeItem('staff');
+  }
+}
+loadState();
+// Date display - always use today's date
+state.date = new Date().toLocaleDateString('en-MY',{day:'2-digit',month:'2-digit',year:'numeric'});
+document.getElementById('home-date').textContent = state.date;
+// Single startup screen decision
+if (state.loggedIn && state.staff) {
+  document.getElementById('home-staff-name').textContent = state.staff;
+  showScreen('screen-home');
+} else {
+  state.loggedIn = false;
+  showScreen('screen-login');
+}
+
+// ── NAVIGATION ──
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function goHome() { showScreen('screen-home'); }
+function goCategories() { renderCategories(); showScreen('screen-categories'); }
+function goItems() { renderItems(state.currentCategory); showScreen('screen-items'); }
+function goPhoto() {
+  showScreen('screen-photo');
+  document.getElementById('do-number').value = state.doNumber || '';
+  document.getElementById('invoice-date').value = state.invoiceDate || '';
+  document.getElementById('invoice-amount').value = state.invoiceAmount || '';
+  document.getElementById('pickup-by').value = state.pickupBy || '';
+  document.getElementById('pickup-date').value = state.pickupDate || '';
+  document.getElementById('invoice-remarks').value = state.invoiceRemarks || '';
+  renderPhotoGrid();
+}
+
+
+
+function getCategories() {
+  const map = {};
+  PRODUCTS.forEach(p => {
+    const key = p.s + '|' + p.c;
+    if (!map[key]) map[key] = { supplier: p.s, cat: p.c, items: [] };
+    map[key].items.push(p);
+  });
+  return map;
+}
+
+function renderCategories() {
+  const map = getCategories();
+  const list = document.getElementById('category-list');
+  const filled = Object.keys(state.records).length;
+  document.getElementById('cat-header-sub').textContent = '';
+
+  let html = '';
+  let lastSupplier = null;
+  Object.values(map).forEach(({ supplier, cat, items }) => {
+    if (supplier !== lastSupplier) {
+      html += `<div class="supplier-label">📦 ${supplier} Supplier</div>`;
+      lastSupplier = supplier;
+    }
+    const done = items.filter(i => state.records[i.n]).length;
+    const icon = CAT_ICONS[cat] || '📦';
+    const pct = Math.round(done/items.length*100);
+    html += `<div class="cat-card" onclick="openCategory('${cat}')">
+      <div class="cat-icon">${icon}</div>
+      <div class="cat-info">
+        <div class="cat-name">${cat}</div>
+        <div class="cat-count">${items.length} items · ${supplier}</div>
+      </div>
+      <div class="cat-status">
+        <span class="cat-arrow">›</span>
+      </div>
+    </div>`;
+  });
+  list.innerHTML = html;
+}
+
+function openCategory(cat) {
+  state.currentCategory = cat;
+  renderItems(cat);
+  showScreen('screen-items');
+}
+
+// ── ITEMS ──
+function renderItems(cat) {
+  const items = PRODUCTS.filter(p => p.c === cat);
+  const done = items.filter(i => state.records[i.n]).length;
+  document.getElementById('items-header-title').textContent = cat;
+  document.getElementById('items-header-sub').textContent = '';
+
+  const list = document.getElementById('item-list');
+  list.innerHTML = items.map(p => {
+    const rec = state.records[p.n];
+    const dotClass = !rec ? '' : 'filled';
+    const meta = rec ? `O:${rec.opening} R:${rec.restock} C:${rec.closing}` : p.c;
+    return `<div class="item-card" onclick="openItem('${p.n.replace(/'/g,"\\'")}')">
+     
+      <div class="item-info">
+        <div class="item-name">${p.n}</div>
+        <div class="item-meta">${meta}</div>
+      </div>
+      <div class="item-diff"></div>
+    </div>`;
+  }).join('');
+}
+
+// ── ITEM FORM ──
+function openItem(name) {
+  const p = PRODUCTS.find(x => x.n === name);
+  if (!p) return;
+  state.currentItem = name;
+  const rec = state.records[name] || {};
+  state.formData = {
+    opening: rec.opening ?? null,
+    restock: rec.restock ?? null,
+    return_item: rec.return_item ?? null,
+    rejected: rec.rejected ?? null,
+    closing: rec.closing ?? null,
+    discount_qty: rec.discount_qty ?? null,
+    remarks: rec.remarks ?? '',
+    rejectPhotos: rec.rejectPhotos ?? [],
+  };
+  state.discountOn = rec.discount_qty != null && rec.discount_qty > 0;
+  renderForm(p);
+  showScreen('screen-form');
+}
+
+function renderForm(p) {
+  document.getElementById('form-item-name').textContent = p.n;
+  document.getElementById('form-item-cat').textContent = `${p.c} · ${p.s}`;
+  document.getElementById('form-prices').innerHTML = `
+    <span class="form-price-item">Sell Price: <span>RM ${p.sell.toFixed(2)}</span></span>
+  `;
+  ['opening','restock','return_item','rejected','closing','discount_qty'].forEach(k => {
+    const el = document.getElementById('fld-'+k);
+    if (el) el.textContent = state.formData[k] != null ? state.formData[k] : '—';
+  });
+  document.getElementById('fld-remarks').value = state.formData.remarks || '';
+  document.getElementById('discount-toggle-sw').className = 'toggle-switch' + (state.discountOn ? ' on' : '');
+  document.getElementById('discount-qty-wrap').style.display = state.discountOn ? 'block' : 'none';
+  document.getElementById('discount-sub').textContent = state.discountOn ? 'Discount applied (50%)' : 'Tap to enable';
+  renderRejectPhotoSection();
+  updateCalc();
+}
+
+function toggleDiscount() {
+  state.discountOn = !state.discountOn;
+  if (!state.discountOn) state.formData.discount_qty = null;
+  document.getElementById('discount-toggle-sw').className = 'toggle-switch' + (state.discountOn ? ' on' : '');
+  document.getElementById('discount-qty-wrap').style.display = state.discountOn ? 'block' : 'none';
+  document.getElementById('discount-sub').textContent = state.discountOn ? 'Discount applied (50%)' : 'Tap to enable';
+  if (state.discountOn) document.getElementById('fld-discount_qty').textContent = state.formData.discount_qty ?? '—';
+  updateCalc();
+}
+
+function updateCalc() {}
+
+function saveItem() {
+  const p = PRODUCTS.find(x => x.n === state.currentItem);
+  if (!p) return;
+  const f = state.formData;
+  const opening = f.opening ?? 0;
+  const restock = f.restock ?? 0;
+  const ret = f.return_item ?? 0;
+  const rejectedQty = f.rejected ?? 0;
+  const closing = f.closing ?? 0;
+  const discQty = (state.discountOn && f.discount_qty) ? f.discount_qty : 0;
+  if (rejectedQty > 0 && (!f.rejectPhotos || f.rejectPhotos.length === 0)) {
+    showToast('⚠ Upload reject photo first!');
+    document.getElementById('reject-photo-section').scrollIntoView({behavior:'smooth'});
+    return;
+  }
+
+  state.records[state.currentItem] = {
+    ...f,
+    opening, restock, return_item: ret, rejected: rejectedQty, closing,
+    discount_qty: discQty,
+    cost: p.cost, sell: p.sell,
+    category: p.c, supplier: p.s,
+    loss_rejected: rejectedQty * p.cost,
+    loss_discount: discQty * (p.sell - p.cost) * 0.5,
+  };
+  saveState();
+  showToast('Saved ✓');
+  setTimeout(() => goItems(), 600);
+}
+
+// ── NUMPAD ──
+let numpadTarget = null;
+let numpadStr = '';
+
+function openNumpad(field, label) {
+  numpadTarget = field;
+  numpadStr = state.formData[field] != null ? String(state.formData[field]) : '';
+  document.getElementById('numpad-label').textContent = label;
+  document.getElementById('numpad-display').textContent = numpadStr || '—';
+  document.getElementById('numpad-overlay').classList.add('open');
+}
+function closeNumpad() { document.getElementById('numpad-overlay').classList.remove('open'); }
+function closeNumpadOutside(e) { if (e.target.id === 'numpad-overlay') closeNumpad(); }
+function numpadKey(k) {
+  if (numpadStr.length < 4) numpadStr += k;
+  document.getElementById('numpad-display').textContent = numpadStr || '—';
+}
+function numpadDel() {
+  numpadStr = numpadStr.slice(0,-1);
+  document.getElementById('numpad-display').textContent = numpadStr || '—';
+}
+function numpadOK() {
+  const val = numpadStr === '' ? null : parseInt(numpadStr);
+  state.formData[numpadTarget] = val;
+  const el = document.getElementById('fld-'+numpadTarget);
+  if (el) el.textContent = val != null ? val : '—';
+  if (numpadTarget === 'rejected') renderRejectPhotoSection();
+  closeNumpad();
+  updateCalc();
+}
+
+function renderRejectPhotoSection() {
+  const rejected = state.formData.rejected;
+  const section = document.getElementById('reject-photo-section');
+  if (!rejected || rejected <= 0) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  const photos = state.formData.rejectPhotos || [];
+  document.getElementById('reject-photo-grid').innerHTML = photos.map((src, i) =>
+    `<div style="position:relative;aspect-ratio:4/3;border-radius:8px;overflow:hidden;background:var(--surface2);">
+      <img src="${src}" style="width:100%;height:100%;object-fit:cover;">
+      <button onclick="removeRejectPhoto(${i})" style="position:absolute;top:4px;right:4px;width:22px;height:22px;background:rgba(0,0,0,0.7);border:none;border-radius:50%;color:white;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">×</button>
+    </div>`
+  ).join('');
+  document.getElementById('reject-photo-status').textContent =
+    photos.length ? `${photos.length} photo${photos.length>1?'s':''} uploaded ✓` : 'No photo uploaded yet';
+  document.getElementById('reject-photo-status').style.color = photos.length ? 'var(--green)' : 'var(--text3)';
+}
+
+function addRejectPhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    if (!state.formData.rejectPhotos) state.formData.rejectPhotos = [];
+    state.formData.rejectPhotos.push(e.target.result);
+    renderRejectPhotoSection();
+    input.value = '';
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeRejectPhoto(i) {
+  state.formData.rejectPhotos.splice(i, 1);
+  renderRejectPhotoSection();
+}
+
+
+
+// ── PHOTO ──
+function addPhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    state.doPhotos.push(e.target.result);
+    renderPhotoGrid();
+    input.value = '';
+  };
+  reader.readAsDataURL(file);
+}
+function removePhoto(i) {
+  state.doPhotos.splice(i,1);
+  renderPhotoGrid();
+}
+function renderPhotoGrid() {
+  const grid = document.getElementById('photo-grid');
+  grid.innerHTML = state.doPhotos.map((src,i) =>
+    `<div style="position:relative;aspect-ratio:4/3;border-radius:var(--radius);overflow:hidden;background:var(--surface);border:1px solid var(--border);">
+      <img src="${src}" style="width:100%;height:100%;object-fit:cover;">
+      <button onclick="removePhoto(${i})" style="position:absolute;top:6px;right:6px;width:26px;height:26px;background:rgba(0,0,0,0.75);border:none;border-radius:50%;color:white;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">×</button>
+    </div>`
+  ).join('');
+}
+function saveDO() {
+  if (!state.doPhotos || state.doPhotos.length === 0) {
+    showToast('⚠ Upload invoice photo first!');
+    return;
+  }
+  state.doNumber = document.getElementById('do-number').value;
+  state.invoiceDate = document.getElementById('invoice-date').value;
+  state.invoiceAmount = document.getElementById('invoice-amount').value;
+  state.pickupBy = document.getElementById('pickup-by').value;
+  state.pickupDate = document.getElementById('pickup-date').value;
+  state.invoiceRemarks = document.getElementById('invoice-remarks').value;
+  saveState();
+  showToast('Saved ✓');
+  setTimeout(() => goHome(), 600);
+}
+
+
+// ── LOGIN ──
+const USERS = {
+  '5237': 'Ain',
+  '3695': 'Dayang',
+  '3440': 'Supervisor',
+};
+
+let loginPin = '';
+
+function loginKey(k) {
+  if (loginPin.length >= 4) return;
+  loginPin += k;
+  updatePinDots();
+  if (loginPin.length === 4) {
+    setTimeout(checkPin, 150);
+  }
+}
+
+function loginDel() {
+  loginPin = loginPin.slice(0, -1);
+  updatePinDots();
+  document.getElementById('login-error').textContent = '';
+}
+
+function updatePinDots() {
+  for (let i = 0; i < 4; i++) {
+    document.getElementById('dot-' + i).classList.toggle('filled', i < loginPin.length);
+  }
+}
+
+function checkPin() {
+  const user = USERS[loginPin];
+  if (user) {
+    document.getElementById('login-error').textContent = '';
+    state.staff = user;
+
+    saveState();
+    state.loggedIn = true;
+    document.getElementById('home-staff-name').textContent = user;
+    saveState();
+    showScreen('screen-home');
+  } else {
+    document.getElementById('login-error').textContent = 'Wrong PIN. Try again.';
+    loginPin = '';
+    updatePinDots();
+  }
+}
+
+// ── LOGOUT ──
+function logout() {
+  state.loggedIn = false;
+  state.staff = null;
+  sessionStorage.removeItem('loggedIn');
+  sessionStorage.removeItem('staff');
+  saveState();
+  loginPin = '';
+  updatePinDots();
+  document.getElementById('login-error').textContent = '';
+  showScreen('screen-login');
+}
+
+
+// ── FIREBASE ──
+const FB_URL = 'https://pick-and-pack-72e34-default-rtdb.asia-southeast1.firebasedatabase.app';
+
+async function fbGet(path) {
+  const res = await fetch(FB_URL + path + '.json');
+  return res.ok ? res.json() : null;
+}
+async function fbSet(path, data) {
+  await fetch(FB_URL + path + '.json', {method:'PUT', body:JSON.stringify(data)});
+}
+async function fbPush(path, data) {
+  const res = await fetch(FB_URL + path + '.json', {method:'POST', body:JSON.stringify(data)});
+  return res.json();
+}
+async function fbUpdate(path, data) {
+  await fetch(FB_URL + path + '.json', {method:'PATCH', body:JSON.stringify(data)});
+}
+
+// ── STAFF PORTAL ──
+let leaveType = null;
+
+function goPortal() {
+  leaveType = null;
+  document.querySelectorAll('.leave-type-btn').forEach(b => b.classList.remove('selected'));
+  // Set today as default from date
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('leave-from').value = today;
+  document.getElementById('leave-to').value = today;
+  document.getElementById('leave-reason').value = '';
+  // Show approve tab only for Supervisor
+  const approveTab = document.getElementById('tab-approve');
+  if (state.staff === 'Supervisor') approveTab.style.display = 'flex';
+  else approveTab.style.display = 'none';
+  switchPortalTab('apply');
+  showScreen('screen-portal');
+}
+
+function selectLeaveType(type) {
+  leaveType = type;
+  document.querySelectorAll('.leave-type-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('lt-' + type).classList.add('selected');
+}
+
+function switchPortalTab(tab) {
+  document.getElementById('portal-apply').style.display = tab === 'apply' ? 'flex' : 'none';
+  document.getElementById('portal-apply').style.flexDirection = 'column';
+  document.getElementById('portal-history').style.display = tab === 'history' ? 'block' : 'none';
+  document.getElementById('portal-approve').style.display = tab === 'approve' ? 'block' : 'none';
+  document.querySelectorAll('.portal-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  if (tab === 'history') loadMyLeaves();
+  if (tab === 'approve') loadPendingLeaves();
+}
+
+async function submitLeave() {
+  if (!leaveType) { showToast('⚠ Select leave type first!'); return; }
+  const from = document.getElementById('leave-from').value;
+  const to = document.getElementById('leave-to').value;
+  if (!from || !to) { showToast('⚠ Select dates!'); return; }
+  if (to < from) { showToast('⚠ End date must be after start date!'); return; }
+  const reason = document.getElementById('leave-reason').value;
+  const data = {
+    staff: state.staff,
+    type: leaveType,
+    from, to, reason,
+    status: 'pending',
+    submittedAt: new Date().toISOString(),
+  };
+  try {
+    await fbPush('/leaves', data);
+    showToast('Application submitted!');
+    leaveType = null;
+    document.querySelectorAll('.leave-type-btn').forEach(b => b.classList.remove('selected'));
+    document.getElementById('leave-reason').value = '';
+    switchPortalTab('history');
+  } catch(e) {
+    showToast('⚠ Failed to submit. Check connection.');
+  }
+}
+
+async function loadMyLeaves() {
+  const list = document.getElementById('my-leave-list');
+  list.innerHTML = '<div class="empty-state">Loading...</div>';
+  try {
+    const data = await fbGet('/leaves');
+    if (!data) { list.innerHTML = '<div class="empty-state">No requests yet</div>'; return; }
+    const mine = Object.entries(data)
+      .filter(([,v]) => v.staff === state.staff)
+      .sort((a,b) => b[1].submittedAt.localeCompare(a[1].submittedAt));
+    if (!mine.length) { list.innerHTML = '<div class="empty-state">No requests yet</div>'; return; }
+    list.innerHTML = mine.map(([id, r]) => `
+      <div class="leave-request-card" style="margin-bottom:10px;">
+        <div class="lr-header">
+          <span class="lr-type">${r.type}</span>
+          <span class="status-badge ${r.status}">${r.status.charAt(0).toUpperCase()+r.status.slice(1)}</span>
+        </div>
+        <div class="lr-dates">📅 ${r.from} → ${r.to}</div>
+        ${r.reason ? `<div class="lr-reason">"${r.reason}"</div>` : ''}
+      </div>`).join('');
+  } catch(e) {
+    list.innerHTML = '<div class="empty-state">Failed to load</div>';
+  }
+}
+
+async function loadPendingLeaves() {
+  const list = document.getElementById('approve-leave-list');
+  list.innerHTML = '<div class="empty-state">Loading...</div>';
+  try {
+    const data = await fbGet('/leaves');
+    if (!data) { list.innerHTML = '<div class="empty-state">No pending requests</div>'; return; }
+    const pending = Object.entries(data)
+      .filter(([,v]) => v.status === 'pending')
+      .sort((a,b) => b[1].submittedAt.localeCompare(a[1].submittedAt));
+    if (!pending.length) { list.innerHTML = '<div class="empty-state">No pending requests</div>'; return; }
+    list.innerHTML = pending.map(([id, r]) => `
+      <div class="leave-request-card" style="margin-bottom:10px;">
+        <div class="lr-header">
+          <span class="lr-name">${r.staff}</span>
+          <span class="lr-type">${r.type}</span>
+        </div>
+        <div class="lr-dates">📅 ${r.from} → ${r.to}</div>
+        ${r.reason ? `<div class="lr-reason">"${r.reason}"</div>` : ''}
+        <div class="approve-row">
+          <button class="approve-btn yes" onclick="approveLeave('${id}', 'approved')">✓ Approve</button>
+          <button class="approve-btn no" onclick="approveLeave('${id}', 'rejected')">✕ Reject</button>
+        </div>
+      </div>`).join('');
+  } catch(e) {
+    list.innerHTML = '<div class="empty-state">Failed to load</div>';
+  }
+}
+
+async function approveLeave(id, status) {
+  try {
+    await fbUpdate('/leaves/' + id, {status});
+    showToast(status === 'approved' ? 'Approved!' : 'Rejected');
+    loadPendingLeaves();
+  } catch(e) {
+    showToast('⚠ Failed. Check connection.');
+  }
+}
+
+// ── TOAST ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = msg.startsWith('⚠') ? 'var(--red)' : 'var(--green)';
+  t.style.color = '#fff';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
