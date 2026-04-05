@@ -895,7 +895,7 @@ document.addEventListener('gesturestart', function(e) {
       <div class="admin-section-title">Add New User</div>
       <div class="add-user-card">
         <input class="admin-input" id="new-user-name" type="text" placeholder="Name (e.g. Ahmad)">
-        <input class="admin-input" id="new-user-pin" type="number" inputmode="numeric" placeholder="4-digit PIN" maxlength="4">
+        <input class="admin-input" id="new-user-pin" type="text" inputmode="numeric" placeholder="4-digit PIN" maxlength="4" pattern="\d{4}">
         <div class="admin-section-title" style="margin-bottom:6px;">Role</div>
         <div class="role-select-row" style="grid-template-columns:1fr 1fr;">
           <div class="role-btn" id="rb-staff" onclick="selectNewRole('staff')">Staff</div>
@@ -1921,7 +1921,7 @@ async function loadAdminUsers() {
  
 async function addUser() {
   const name = document.getElementById('new-user-name').value.trim();
-  const pin = document.getElementById('new-user-pin').value.trim();
+  const pin = String(document.getElementById('new-user-pin').value).trim();
   if (!name) { showToast('⚠ Enter a name!'); return; }
   if (!/^\d{4}$/.test(pin)) { showToast('⚠ PIN must be exactly 4 digits!'); return; }
   try {
@@ -1934,7 +1934,7 @@ async function addUser() {
         }
       }
     }
-    await fbSet('/users/' + name, { pin, role: newUserRole });
+    await fbSet('/users/' + name, { pin: pin, role: newUserRole });
     showToast('User ' + name + ' added!');
     document.getElementById('new-user-name').value = '';
     document.getElementById('new-user-pin').value = '';
