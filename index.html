@@ -1674,9 +1674,30 @@ async function approveLeave(id, status) {
 const GS_URL = 'https://script.google.com/macros/s/AKfycbz8In9O97bTXl05RfyYLjHE1CrSisUSBY98CMu97EWDE_CYQY7XM0aDVnyt_WHy_Ws/exec';
 const GS_SECRET = '668811';
  
+// Compress image to reduce base64 size before uploading
+function compressPhoto(dataUrl, maxWidth = 1200, quality = 0.75) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let w = img.width, h = img.height;
+      if (w > maxWidth) { h = Math.round(h * maxWidth / w); w = maxWidth; }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.src = dataUrl;
+  });
+}
+ 
 async function gsRequest(payload) {
-  const encoded = encodeURIComponent(JSON.stringify(payload));
-  const res = await fetch(`${GS_URL}?data=${encoded}`);
+  const res = await fetch(GS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' }, // text/plain avoids CORS preflight
+    body: JSON.stringify(payload),
+    redirect: 'follow',
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
   return res.json();
 }
  
@@ -1687,7 +1708,6 @@ async function sendInvoiceToSheet(autoSave = false) {
   }
  
   const btn = document.getElementById('send-sheet-btn');
-  btn.textContent = 'Uploading photos...';
   btn.disabled = true;
  
   const invoiceNumber = document.getElementById('do-number').value || '';
@@ -1695,11 +1715,12 @@ async function sendInvoiceToSheet(autoSave = false) {
   const pickupDate = getInvoiceDate('pickup-date');
  
   try {
-    // Step 1: Upload each photo to Google Drive
+    // Step 1: Compress & upload each photo to Google Drive
     const photoUrls = [];
     for (let i = 0; i < state.doPhotos.length; i++) {
-      btn.textContent = `Uploading photo ${i+1}/${state.doPhotos.length}...`;
-      const base64 = state.doPhotos[i].split(',')[1];
+      btn.textContent = `上传照片 ${i+1}/${state.doPhotos.length}...`;
+      const compressed = await compressPhoto(state.doPhotos[i]);
+      const base64 = compressed.split(',')[1];
       const result = await gsRequest({
         secret: GS_SECRET,
         type: 'photo',
@@ -1708,11 +1729,11 @@ async function sendInvoiceToSheet(autoSave = false) {
         invoiceNumber: invoiceNumber,
         date: invoiceDate,
       });
-      if (result.url) photoUrls.push(result.url);
+      if (result && result.url) photoUrls.push(result.url);
     }
  
     // Step 2: Save invoice data + photo links to Google Sheet
-    btn.textContent = 'Saving to Sheet...';
+    btn.textContent = '保存中...';
     await gsRequest({
       secret: GS_SECRET,
       type: 'invoice',
