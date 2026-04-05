@@ -783,10 +783,10 @@ document.addEventListener('gesturestart', function(e) {
     <div><div class="header-title">Staff Portal</div></div>
   </div>
   <div class="portal-scroll has-nav">
-    <div class="portal-tabs">
+    <div class="portal-tabs" id="portal-tabs-bar">
       <button class="portal-tab active" id="tab-apply" onclick="switchPortalTab('apply')">Apply Leave</button>
       <button class="portal-tab" id="tab-history" onclick="switchPortalTab('history')">My Requests</button>
-      <button class="portal-tab" id="tab-approve" onclick="switchPortalTab('approve')" id="tab-approve" style="display:none">Approve</button>
+      <button class="portal-tab" id="tab-approve" onclick="switchPortalTab('approve')" style="display:none">Approve</button>
     </div>
  
     <!-- APPLY TAB -->
@@ -1703,15 +1703,15 @@ function goPortal() {
   populateDateSelects();
   document.getElementById('leave-reason').value = '';
   // Owner: only Approve tab. Staff/Supervisor: Apply + My Requests only
+  const tabsBar = document.getElementById('portal-tabs-bar');
   const applyTab = document.getElementById('tab-apply');
   const historyTab = document.getElementById('tab-history');
   const approveTab = document.getElementById('tab-approve');
   if (state.staffRole === 'owner') {
-    applyTab.style.display = 'none';
-    historyTab.style.display = 'none';
-    approveTab.style.display = 'flex';
+    tabsBar.style.display = 'none';
     switchPortalTab('approve');
   } else {
+    tabsBar.style.display = 'flex';
     applyTab.style.display = 'flex';
     historyTab.style.display = 'flex';
     approveTab.style.display = 'none';
@@ -1902,7 +1902,8 @@ async function loadAdminUsers() {
     if (!data) { list.innerHTML = '<div class="empty-state">No users found</div>'; return; }
     const roleEmoji = { owner: '👤', supervisor: '👤', staff: '👤' };
     const roleOrder = { owner: 0, supervisor: 1, staff: 2 };
-    const sorted = Object.entries(data).sort((a,b) => (roleOrder[a[1].role]||2) - (roleOrder[b[1].role]||2));
+    const getRoleOrder = r => roleOrder[r] !== undefined ? roleOrder[r] : 3;
+    const sorted = Object.entries(data).sort((a,b) => getRoleOrder(a[1].role) - getRoleOrder(b[1].role));
     list.innerHTML = sorted.map(([name, info]) => `
       <div class="user-card" style="margin-bottom:8px;">
         <div class="user-avatar">${roleEmoji[info.role] || '👤'}</div>
