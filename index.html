@@ -1807,7 +1807,7 @@ async function loadMyLeaves() {
         ${r.reason ? `<div class="lr-reason">"${r.reason}"</div>` : ''}
         ${r.status === 'pending' ? `
         <div class="approve-row" style="margin-top:8px;">
-          <button class="approve-btn no" onclick="cancelLeave('${id}')">Cancel Application</button>
+          <button class="approve-btn no" onclick="cancelLeave('${id}', this)">Cancel Application</button>
         </div>` : ''}
       </div>`).join('');
   } catch(e) {
@@ -1864,11 +1864,12 @@ async function approveLeave(id, status) {
   }
 }
  
-async function cancelLeave(id) {
+async function cancelLeave(id, btn) {
+  btn.disabled = true;
+  btn.textContent = 'Cancelling...';
   try {
     const data = await fbGet('/leaves/' + id);
     await fbUpdate('/leaves/' + id, {status: 'cancelled'});
-    // Update Google Sheet
     await gsRequest({
       secret: GS_SECRET,
       type: 'updateLeave',
@@ -1882,6 +1883,8 @@ async function cancelLeave(id) {
     loadMyLeaves();
   } catch(e) {
     showToast('⚠ Failed. Check connection.');
+    btn.disabled = false;
+    btn.textContent = 'Cancel Application';
   }
 }
  
