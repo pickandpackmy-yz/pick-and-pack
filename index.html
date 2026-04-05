@@ -1364,19 +1364,38 @@ function updatePinDots() {
   }
 }
  
-function checkPin() {
-  const user = USERS[loginPin];
-  if (user) {
-    document.getElementById('login-error').textContent = '';
-    state.staff = user;
+async function checkPin() {
+  document.getElementById('login-error').textContent = '';
+  const dots = document.querySelectorAll('.pin-dot');
+  dots.forEach(d => d.style.background = 'var(--accent2)');
  
-    saveState();
-    document.getElementById('home-staff-name').textContent = user;
-    showScreen('screen-home');
-  } else {
-    document.getElementById('login-error').textContent = 'Wrong PIN. Try again.';
-    loginPin = '';
-    updatePinDots();
+  try {
+    const data = await fbGet('/users');
+    if (!data) {
+      document.getElementById('login-error').textContent = 'Connection error. Try again.';
+      loginPin = ''; updatePinDots(); return;
+    }
+    let matchedUser = null;
+    for (const [name, info] of Object.entries(data)) {
+      if (String(info.pin) === loginPin) {
+        matchedUser = { name, role: info.role };
+        break;
+      }
+    }
+    if (matchedUser) {
+      state.staff = matchedUser.name;
+      state.staffRole = matchedUser.role;
+      document.getElementById('home-staff-name').textContent = matchedUser.name;
+      const approveTab = document.getElementById('tab-approve');
+      if (approveTab) approveTab.style.display = matchedUser.role === 'supervisor' ? 'flex' : 'none';
+      showScreen('screen-home');
+    } else {
+      document.getElementById('login-error').textContent = 'Wrong PIN. Try again.';
+      loginPin = ''; updatePinDots();
+    }
+  } catch(e) {
+    document.getElementById('login-error').textContent = 'Connection error. Try again.';
+    loginPin = ''; updatePinDots();
   }
 }
  
