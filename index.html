@@ -824,7 +824,7 @@ document.addEventListener('gesturestart', function(e) {
         <div class="portal-section-title" style="margin-top:10px;">Reason</div>
         <textarea class="portal-input" id="leave-reason" placeholder="Optional reason..." style="height:70px;resize:none;margin-bottom:0;"></textarea>
       </div>
-      <button class="save-btn" onclick="submitLeave()" style="margin-top:4px;">Submit Application</button>
+      <button id="submit-leave-btn" class="save-btn" onclick="submitLeave()" style="margin-top:4px;">Submit Application</button>
     </div>
  
     <!-- HISTORY TAB -->
@@ -1757,10 +1757,13 @@ async function submitLeave() {
     status: 'pending',
     submittedAt: new Date().toISOString(),
   };
+ 
+  const btn = document.getElementById('submit-leave-btn');
+  btn.disabled = true;
+  btn.textContent = 'Submitting...';
+ 
   try {
-    // Save to Firebase
     await fbPush('/leaves', data);
-    // Save to Google Sheet
     await gsRequest({
       secret: GS_SECRET,
       type: 'leave',
@@ -1778,6 +1781,9 @@ async function submitLeave() {
     switchPortalTab('history');
   } catch(e) {
     showToast('⚠ Failed to submit. Check connection.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Submit Application';
   }
 }
  
@@ -1801,7 +1807,7 @@ async function loadMyLeaves() {
         ${r.reason ? `<div class="lr-reason">"${r.reason}"</div>` : ''}
         ${r.status === 'pending' ? `
         <div class="approve-row" style="margin-top:8px;">
-          <button class="approve-btn no" onclick="cancelLeave('${id}')">✕ Cancel Application</button>
+          <button class="approve-btn no" onclick="cancelLeave('${id}')">Cancel Application</button>
         </div>` : ''}
       </div>`).join('');
   } catch(e) {
