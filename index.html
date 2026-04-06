@@ -590,7 +590,7 @@ document.addEventListener('gesturestart', function(e) {
     </div>
     <!-- ATTENDANCE CLOCK CARD ON HOME -->
     <div class="clock-card" id="home-clock-card">
-      <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;">⏱ Attendance</div>
+      <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;">Attendance</div>
       <div class="clock-time-display" id="home-clock-live-time">--:--:--</div>
       <div class="clock-date-display" id="home-clock-live-date"></div>
       <div class="clock-status-row">
@@ -603,9 +603,17 @@ document.addEventListener('gesturestart', function(e) {
           <div class="clock-status-value" id="home-clock-out-display">—</div>
         </div>
       </div>
-      <button class="clock-btn in" id="home-clock-btn" onclick="doHomeClock()">⏱ Clock In</button>
-      <button id="home-undo-clockin-btn" onclick="undoHomeClockIn()" style="display:none;margin-top:8px;width:100%;padding:10px;border:1px solid rgba(96,165,250,0.4);background:rgba(96,165,250,0.08);color:var(--blue);border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">↩ Undo Clock In</button>
-      <button id="home-undo-clockout-btn" onclick="undoHomeClockOut()" style="display:none;margin-top:8px;width:100%;padding:10px;border:1px solid rgba(248,113,113,0.4);background:rgba(248,113,113,0.08);color:var(--red);border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">↩ Undo Clock Out</button>
+      <!-- Role selection (shown before clock in) -->
+      <div id="home-role-select" style="display:none;margin-bottom:10px;">
+        <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Your Role Today</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <button id="role-btn-cashier" onclick="selectClockRole('Cashier')" style="padding:14px;border:2px solid var(--border);background:var(--surface2);border-radius:var(--radius);font-size:14px;font-weight:600;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;">Cashier</button>
+          <button id="role-btn-kitchen" onclick="selectClockRole('Kitchen')" style="padding:14px;border:2px solid var(--border);background:var(--surface2);border-radius:var(--radius);font-size:14px;font-weight:600;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;">Kitchen</button>
+        </div>
+      </div>
+      <button class="clock-btn in" id="home-clock-btn" onclick="doHomeClock()">Clock In</button>
+      <button id="home-undo-clockin-btn" onclick="undoHomeClockIn()" style="display:none;margin-top:8px;width:100%;padding:10px;border:1px solid rgba(96,165,250,0.4);background:rgba(96,165,250,0.08);color:var(--blue);border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Undo Clock In</button>
+      <button id="home-undo-clockout-btn" onclick="undoHomeClockOut()" style="display:none;margin-top:8px;width:100%;padding:10px;border:1px solid rgba(248,113,113,0.4);background:rgba(248,113,113,0.08);color:var(--red);border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Undo Clock Out</button>
     </div>
   </div>
 </div>
@@ -977,19 +985,19 @@ document.addEventListener('gesturestart', function(e) {
     <span class="nav-icon">🏠</span>Home
   </button>
   <button class="nav-btn" id="nav-stock" onclick="navTo('stock')">
-    <span class="nav-icon">📦</span>Stock
+    <span class="nav-icon" style="font-size:16px;font-weight:700;">STK</span>Stock
   </button>
   <button class="nav-btn" id="nav-invoice" onclick="navTo('invoice')">
-    <span class="nav-icon">🧾</span>Invoice
+    <span class="nav-icon" style="font-size:16px;font-weight:700;">INV</span>Invoice
   </button>
   <button class="nav-btn" id="nav-leave" onclick="navTo('leave')">
-    <span class="nav-icon">🗓️</span>Leave
+    <span class="nav-icon" style="font-size:16px;font-weight:700;">LVE</span>Leave
   </button>
   <button class="nav-btn" id="nav-admin" onclick="navTo('admin')" style="display:none;">
-    <span class="nav-icon">🔧</span>Admin
+    <span class="nav-icon" style="font-size:16px;font-weight:700;">ADM</span>Admin
   </button>
   <button class="nav-btn" id="nav-me" onclick="navTo('me')">
-    <span class="nav-icon">👤</span>Me
+    <span class="nav-icon" style="font-size:16px;font-weight:700;">ME</span>Me
   </button>
 </div>
 
@@ -2257,31 +2265,66 @@ async function loadHomeClockStatus() {
     if (!data || !data.clockIn) {
       inEl.textContent     = '—';
       outEl.textContent    = '—';
-      btn.textContent      = '⏱ Clock In';
+      btn.textContent      = 'Clock In';
       btn.className        = 'clock-btn in';
-      btn.disabled         = false;
+      btn.disabled         = true; // disabled until role selected
+      document.getElementById('home-role-select').style.display = 'block';
       undoInBtn.style.display  = 'none';
       undoOutBtn.style.display = 'none';
+      // Reset role selection
+      document.getElementById('role-btn-cashier').style.borderColor = 'var(--border)';
+      document.getElementById('role-btn-cashier').style.color = 'var(--text2)';
+      document.getElementById('role-btn-cashier').style.background = 'var(--surface2)';
+      document.getElementById('role-btn-kitchen').style.borderColor = 'var(--border)';
+      document.getElementById('role-btn-kitchen').style.color = 'var(--text2)';
+      document.getElementById('role-btn-kitchen').style.background = 'var(--surface2)';
+      state.selectedClockRole = null;
     } else if (!data.clockOut) {
       inEl.textContent     = formatClockTime(data.clockIn);
       outEl.textContent    = '—';
-      btn.textContent      = '🔴 Clock Out';
+      btn.textContent      = 'Clock Out';
       btn.className        = 'clock-btn out';
       btn.disabled         = false;
+      document.getElementById('home-role-select').style.display = 'none';
       undoInBtn.style.display  = 'block';
       undoOutBtn.style.display = 'none';
     } else {
       inEl.textContent     = formatClockTime(data.clockIn);
       outEl.textContent    = formatClockTime(data.clockOut);
-      btn.textContent      = '✓ Done for Today';
+      btn.textContent      = 'Done for Today';
       btn.className        = 'clock-btn out';
       btn.disabled         = true;
+      document.getElementById('home-role-select').style.display = 'none';
       undoInBtn.style.display  = 'none';
       undoOutBtn.style.display = 'block';
     }
   } catch(e) {
     console.error('loadHomeClockStatus error:', e);
   }
+}
+
+function selectClockRole(role) {
+  state.selectedClockRole = role;
+  const cashierBtn = document.getElementById('role-btn-cashier');
+  const kitchenBtn = document.getElementById('role-btn-kitchen');
+  if (role === 'Cashier') {
+    cashierBtn.style.borderColor = 'var(--accent)';
+    cashierBtn.style.color = 'var(--accent)';
+    cashierBtn.style.background = 'rgba(245,200,66,0.08)';
+    kitchenBtn.style.borderColor = 'var(--border)';
+    kitchenBtn.style.color = 'var(--text2)';
+    kitchenBtn.style.background = 'var(--surface2)';
+  } else {
+    kitchenBtn.style.borderColor = 'var(--accent)';
+    kitchenBtn.style.color = 'var(--accent)';
+    kitchenBtn.style.background = 'rgba(245,200,66,0.08)';
+    cashierBtn.style.borderColor = 'var(--border)';
+    cashierBtn.style.color = 'var(--text2)';
+    cashierBtn.style.background = 'var(--surface2)';
+  }
+  // Enable clock in button once role selected
+  const btn = document.getElementById('home-clock-btn');
+  btn.disabled = false;
 }
 
 async function doHomeClock() {
@@ -2299,8 +2342,13 @@ async function doHomeClock() {
   try {
     const existing = await fbGet(path);
     if (!existing || !existing.clockIn) {
+      if (!state.selectedClockRole) {
+        showToast('⚠ Please select Cashier or Kitchen first!');
+        btn.disabled = false; btn.textContent = 'Clock In';
+        return;
+      }
       clockType  = 'clockIn';
-      updateData = { clockIn: now };
+      updateData = { clockIn: now, role: state.selectedClockRole };
     } else if (!existing.clockOut) {
       clockType  = 'clockOut';
       updateData = { clockOut: now };
@@ -2325,7 +2373,7 @@ async function doHomeClock() {
   }
 
   // GS request — fire and forget, never block the UI
-  gsRequest({ secret: GS_SECRET, type: 'attendance', staff: state.staff, date: todayKey, clockType, time: now })
+  gsRequest({ secret: GS_SECRET, type: 'attendance', staff: state.staff, date: todayKey, clockType, time: now, role: state.selectedClockRole || '' })
     .catch(e => console.error('doHomeClock gsRequest error:', e));
 
   showToast(clockType === 'clockIn' ? '✓ Clocked In!' : '✓ Clocked Out!');
