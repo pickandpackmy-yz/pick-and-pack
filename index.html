@@ -1182,6 +1182,8 @@ document.getElementById('home-date').textContent = state.date;
 if (state.loggedIn && state.staff) {
   document.getElementById('home-staff-name').textContent = state.staff;
   showScreen('screen-home');
+  // Start clock timer immediately on page load if already logged in
+  setTimeout(() => { startHomeClockTimer(); loadHomeClockStatus(); }, 0);
 } else {
   state.loggedIn = false;
   showScreen('screen-login');
@@ -2290,6 +2292,7 @@ async function doHomeClock() {
     } else {
       showToast('Already clocked in & out today!');
       btn.disabled = true;
+      btn.textContent = '✓ Done for Today';
       return;
     }
   } catch(e) {
@@ -2306,9 +2309,9 @@ async function doHomeClock() {
     return;
   }
 
-  try {
-    await gsRequest({ secret: GS_SECRET, type: 'attendance', staff: state.staff, date: todayKey, clockType, time: now });
-  } catch(e) { console.error('doHomeClock gsRequest error:', e); }
+  // GS request — fire and forget, never block the UI
+  gsRequest({ secret: GS_SECRET, type: 'attendance', staff: state.staff, date: todayKey, clockType, time: now })
+    .catch(e => console.error('doHomeClock gsRequest error:', e));
 
   showToast(clockType === 'clockIn' ? '✓ Clocked In!' : '✓ Clocked Out!');
   await loadHomeClockStatus();
@@ -2330,9 +2333,8 @@ async function undoHomeClockIn() {
     btn.disabled = false; btn.textContent = '↩ Undo Clock In';
     return;
   }
-  try {
-    await gsRequest({ secret: GS_SECRET, type: 'attendance', staff: state.staff, date: todayKey, clockType: 'undoClockIn', time: new Date().toISOString() });
-  } catch(e) { console.error('undoHomeClockIn gsRequest error:', e); }
+  gsRequest({ secret: GS_SECRET, type: 'attendance', staff: state.staff, date: todayKey, clockType: 'undoClockIn', time: new Date().toISOString() })
+    .catch(e => console.error('undoHomeClockIn gsRequest error:', e));
 
   showToast('Clock In undone');
   await loadHomeClockStatus();
@@ -2354,9 +2356,8 @@ async function undoHomeClockOut() {
     btn.disabled = false; btn.textContent = '↩ Undo Clock Out';
     return;
   }
-  try {
-    await gsRequest({ secret: GS_SECRET, type: 'attendance', staff: state.staff, date: todayKey, clockType: 'undoClockOut', time: new Date().toISOString() });
-  } catch(e) { console.error('undoHomeClockOut gsRequest error:', e); }
+  gsRequest({ secret: GS_SECRET, type: 'attendance', staff: state.staff, date: todayKey, clockType: 'undoClockOut', time: new Date().toISOString() })
+    .catch(e => console.error('undoHomeClockOut gsRequest error:', e));
 
   showToast('Clock Out undone');
   await loadHomeClockStatus();
