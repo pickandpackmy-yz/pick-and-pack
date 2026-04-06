@@ -1175,7 +1175,8 @@ function saveState() {
 loadState();
 // Date display - always use today's date
 state.date = new Date().toLocaleDateString('en-MY',{day:'2-digit',month:'2-digit',year:'numeric'});
-document.getElementById('home-date').textContent = state.date;
+const homeDateEl = document.getElementById('home-date');
+if (homeDateEl) homeDateEl.textContent = state.date;
 // Single startup screen decision
 if (state.loggedIn && state.staff) {
   document.getElementById('home-staff-name').textContent = state.staff;
