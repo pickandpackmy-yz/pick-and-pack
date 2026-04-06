@@ -582,7 +582,7 @@ document.addEventListener('gesturestart', function(e) {
     <div class="home-center" style="padding:24px 16px 8px;margin:0;">
       <div class="home-tag">📦 Pick &amp; Pack</div>
       <div class="home-title">Daily<br><span>Stock</span> Check</div>
-      <div class="home-date" id="home-date"></div>
+
       <div class="home-staff-badge">
         <span class="badge-dot"></span>
         <span id="home-staff-name">—</span>
@@ -2334,9 +2334,13 @@ async function undoHomeClockIn() {
 
   try {
     await fetch(FB_URL + path + '.json', { method: 'DELETE' });
-    gsRequest({ secret: GS_SECRET, type: 'attendance', staff: state.staff, date: todayKey, clockType: 'undoClockIn', time: new Date().toISOString() })
-      .catch(e => console.error('undoHomeClockIn gsRequest error:', e));
+    try {
+      await gsRequest({ secret: GS_SECRET, type: 'attendance', staff: state.staff, date: todayKey, clockType: 'undoClockIn', time: new Date().toISOString() });
+    } catch(gsErr) {
+      console.error('undoHomeClockIn gsRequest error:', gsErr);
+    }
     showToast('Clock In undone');
+    btn.disabled = false; btn.textContent = '↩ Undo Clock In';
     await loadHomeClockStatus();
   } catch(e) {
     showToast('⚠ Failed to undo.');
@@ -2356,8 +2360,11 @@ async function undoHomeClockOut() {
   try {
     // Delete entire Firebase record for today so user can clock in fresh
     await fetch(FB_URL + path + '.json', { method: 'DELETE' });
-    gsRequest({ secret: GS_SECRET, type: 'attendance', staff: state.staff, date: todayKey, clockType: 'undoClockOut', time: new Date().toISOString() })
-      .catch(e => console.error('undoHomeClockOut gsRequest error:', e));
+    try {
+      await gsRequest({ secret: GS_SECRET, type: 'attendance', staff: state.staff, date: todayKey, clockType: 'undoClockOut', time: new Date().toISOString() });
+    } catch(gsErr) {
+      console.error('undoHomeClockOut gsRequest error:', gsErr);
+    }
     showToast('Clock Out undone');
     btn.textContent = '↩ Undo Clock Out';
     btn.disabled = false;
