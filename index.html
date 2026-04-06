@@ -2227,6 +2227,14 @@ function startHomeClockTimer() {
 }
 
 async function loadHomeClockStatus() {
+  // Supervisor and Owner do not need to clock in/out
+  const clockCard = document.getElementById('home-clock-card');
+  if (state.staffRole === 'supervisor' || state.staffRole === 'owner') {
+    if (clockCard) clockCard.style.display = 'none';
+    return;
+  }
+  if (clockCard) clockCard.style.display = '';
+
   const staffKey = (state.staff || 'unknown').replace(/[.#$\[\]/]/g, '_');
   const todayKey = getTodayKey();
   const path = '/attendance/' + staffKey + '/' + todayKey;
@@ -2337,7 +2345,7 @@ async function undoHomeClockIn() {
 }
 
 async function undoHomeClockOut() {
-  if (!confirm('Undo Clock Out? This will delete today\'s record from the sheet.')) return;
+  if (!confirm('Undo Clock Out? This will remove today\'s clock-out record.')) return;
   const btn = document.getElementById('home-undo-clockout-btn');
   btn.disabled = true; btn.textContent = 'Undoing...';
 
@@ -2351,6 +2359,8 @@ async function undoHomeClockOut() {
     gsRequest({ secret: GS_SECRET, type: 'attendance', staff: state.staff, date: todayKey, clockType: 'undoClockOut', time: new Date().toISOString() })
       .catch(e => console.error('undoHomeClockOut gsRequest error:', e));
     showToast('Clock Out undone');
+    btn.textContent = '↩ Undo Clock Out';
+    btn.disabled = false;
     await loadHomeClockStatus();
   } catch(e) {
     showToast('⚠ Failed to undo.');
