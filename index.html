@@ -604,10 +604,8 @@ document.addEventListener('gesturestart', function(e) {
         </div>
       </div>
       <button class="clock-btn in" id="home-clock-btn" onclick="doHomeClock()">⏱ Clock In</button>
-      <div id="home-undo-row" style="display:none;display:flex;gap:8px;margin-top:8px;display:none;">
-        <button id="home-undo-clockin-btn" onclick="undoHomeClockIn()" style="flex:1;padding:10px;border:1px solid rgba(96,165,250,0.4);background:rgba(96,165,250,0.08);color:var(--blue);border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;display:none;">↩ Undo Clock In</button>
-        <button id="home-undo-clockout-btn" onclick="undoHomeClockOut()" style="flex:1;padding:10px;border:1px solid rgba(248,113,113,0.4);background:rgba(248,113,113,0.08);color:var(--red);border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;display:none;">↩ Undo Clock Out</button>
-      </div>
+      <button id="home-undo-clockin-btn" onclick="undoHomeClockIn()" style="display:none;margin-top:8px;width:100%;padding:10px;border:1px solid rgba(96,165,250,0.4);background:rgba(96,165,250,0.08);color:var(--blue);border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">↩ Undo Clock In</button>
+      <button id="home-undo-clockout-btn" onclick="undoHomeClockOut()" style="display:none;margin-top:8px;width:100%;padding:10px;border:1px solid rgba(248,113,113,0.4);background:rgba(248,113,113,0.08);color:var(--red);border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">↩ Undo Clock Out</button>
     </div>
   </div>
 </div>
