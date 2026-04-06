@@ -2254,12 +2254,19 @@ async function loadClockStatus() {
 async function doClock() {
   const btn = document.getElementById('clock-btn');
   btn.disabled = true;
+  btn.textContent = 'Checking...';
+
+  // Sanitize staff name for Firebase path (remove dots, #, $, [, ], /)
+  const staffKey = (state.staff || 'unknown').replace(/[.#$\[\]/]/g, '_');
   const todayKey = getTodayKey();
-  const path = '/attendance/' + state.staff + '/' + todayKey;
+  const path = '/attendance/' + staffKey + '/' + todayKey;
   const now = new Date().toISOString();
+
+  let clockType, updateData;
+
+  // Step 1: Read existing record from Firebase
   try {
     const existing = await fbGet(path);
-    let clockType, updateData;
     if (!existing || !existing.clockIn) {
       clockType  = 'clockIn';
       updateData = { clockIn: now };
@@ -2269,12 +2276,31 @@ async function doClock() {
     } else {
       showToast('Already clocked in & out today!');
       btn.disabled = true;
+      btn.textContent = '✓ Done for Today';
       return;
     }
-    // Save to Firebase
+  } catch(e) {
+    console.error('doClock fbGet error:', e);
+    showToast('⚠ Firebase read failed.');
+    btn.disabled = false;
+    btn.textContent = clockType === 'clockOut' ? '🔴 Clock Out' : '⏱ Clock In';
+    return;
+  }
+
+  // Step 2: Write to Firebase
+  try {
     await fbUpdate(path, updateData);
-    // Send to Google Sheet
-    btn.textContent = 'Saving...';
+  } catch(e) {
+    console.error('doClock fbUpdate error:', e);
+    showToast('⚠ Firebase write failed: ' + e.message);
+    btn.disabled = false;
+    btn.textContent = clockType === 'clockOut' ? '🔴 Clock Out' : '⏱ Clock In';
+    return;
+  }
+
+  // Step 3: Send to Google Sheet (non-blocking — show success even if GS fails)
+  btn.textContent = 'Saving to sheet...';
+  try {
     await gsRequest({
       secret: GS_SECRET,
       type: 'attendance',
@@ -2283,13 +2309,16 @@ async function doClock() {
       clockType,
       time: now,
     });
-    showToast(clockType === 'clockIn' ? '✓ Clocked In!' : '✓ Clocked Out!');
-    await loadClockStatus();
   } catch(e) {
-    console.error('doClock error:', e);
-    showToast('⚠ Failed. Check connection.');
+    console.error('doClock gsRequest error:', e);
+    // Firebase already saved — still treat as success, just warn
+    showToast('✓ ' + (clockType === 'clockIn' ? 'Clocked In' : 'Clocked Out') + ' (sheet sync failed)');
     await loadClockStatus();
+    return;
   }
+
+  showToast(clockType === 'clockIn' ? '✓ Clocked In!' : '✓ Clocked Out!');
+  await loadClockStatus();
 }
 
 // ── TOAST ──
