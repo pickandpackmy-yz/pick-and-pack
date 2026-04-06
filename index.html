@@ -2326,20 +2326,18 @@ async function undoHomeClockIn() {
 
   try {
     await fetch(FB_URL + path + '.json', { method: 'DELETE' });
+    gsRequest({ secret: GS_SECRET, type: 'attendance', staff: state.staff, date: todayKey, clockType: 'undoClockIn', time: new Date().toISOString() })
+      .catch(e => console.error('undoHomeClockIn gsRequest error:', e));
+    showToast('Clock In undone');
+    await loadHomeClockStatus();
   } catch(e) {
     showToast('⚠ Failed to undo.');
     btn.disabled = false; btn.textContent = '↩ Undo Clock In';
-    return;
   }
-  gsRequest({ secret: GS_SECRET, type: 'attendance', staff: state.staff, date: todayKey, clockType: 'undoClockIn', time: new Date().toISOString() })
-    .catch(e => console.error('undoHomeClockIn gsRequest error:', e));
-
-  showToast('Clock In undone');
-  await loadHomeClockStatus();
 }
 
 async function undoHomeClockOut() {
-  if (!confirm('Undo Clock Out?')) return;
+  if (!confirm('Undo Clock Out? This will delete today\'s record from the sheet.')) return;
   const btn = document.getElementById('home-undo-clockout-btn');
   btn.disabled = true; btn.textContent = 'Undoing...';
 
@@ -2348,17 +2346,16 @@ async function undoHomeClockOut() {
   const path = '/attendance/' + staffKey + '/' + todayKey;
 
   try {
-    await fbUpdate(path, { clockOut: null });
+    // Delete entire Firebase record for today so user can clock in fresh
+    await fetch(FB_URL + path + '.json', { method: 'DELETE' });
+    gsRequest({ secret: GS_SECRET, type: 'attendance', staff: state.staff, date: todayKey, clockType: 'undoClockOut', time: new Date().toISOString() })
+      .catch(e => console.error('undoHomeClockOut gsRequest error:', e));
+    showToast('Clock Out undone');
+    await loadHomeClockStatus();
   } catch(e) {
     showToast('⚠ Failed to undo.');
     btn.disabled = false; btn.textContent = '↩ Undo Clock Out';
-    return;
   }
-  gsRequest({ secret: GS_SECRET, type: 'attendance', staff: state.staff, date: todayKey, clockType: 'undoClockOut', time: new Date().toISOString() })
-    .catch(e => console.error('undoHomeClockOut gsRequest error:', e));
-
-  showToast('Clock Out undone');
-  await loadHomeClockStatus();
 }
 
 // ── TOAST ──
