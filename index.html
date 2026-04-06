@@ -914,6 +914,7 @@ document.addEventListener('gesturestart', function(e) {
         </div>
       </div>
       <button class="clock-btn in" id="clock-btn" onclick="doClock()">⏱ Clock In</button>
+      <button id="undo-clock-btn" onclick="undoClockOut()" style="display:none;margin-top:8px;width:100%;padding:10px;border:1px solid rgba(248,113,113,0.4);background:rgba(248,113,113,0.08);color:var(--red);border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">↩ Undo Clock Out</button>
     </div>
     <!-- Contact Info -->
     <div id="me-contact-section" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;">
@@ -2220,31 +2221,36 @@ function formatClockTime(isoStr) {
 }
 
 async function loadClockStatus() {
+  const staffKey = (state.staff || 'unknown').replace(/[.#$\[\]/]/g, '_');
   const todayKey = getTodayKey();
-  const path = '/attendance/' + state.staff + '/' + todayKey;
+  const path = '/attendance/' + staffKey + '/' + todayKey;
   try {
     const data = await fbGet(path);
     const inEl  = document.getElementById('clock-in-display');
     const outEl = document.getElementById('clock-out-display');
     const btn   = document.getElementById('clock-btn');
+    const undoBtn = document.getElementById('undo-clock-btn');
     if (!data || !data.clockIn) {
       inEl.textContent  = '—';
       outEl.textContent = '—';
       btn.textContent   = '⏱ Clock In';
       btn.className     = 'clock-btn in';
       btn.disabled      = false;
+      if (undoBtn) undoBtn.style.display = 'none';
     } else if (data.clockIn && !data.clockOut) {
       inEl.textContent  = formatClockTime(data.clockIn);
       outEl.textContent = '—';
       btn.textContent   = '🔴 Clock Out';
       btn.className     = 'clock-btn out';
       btn.disabled      = false;
+      if (undoBtn) undoBtn.style.display = 'none';
     } else {
       inEl.textContent  = formatClockTime(data.clockIn);
       outEl.textContent = formatClockTime(data.clockOut);
       btn.textContent   = '✓ Done for Today';
       btn.className     = 'clock-btn out';
       btn.disabled      = true;
+      if (undoBtn) undoBtn.style.display = 'block';
     }
   } catch(e) {
     console.error('loadClockStatus error:', e);
@@ -2254,9 +2260,7 @@ async function loadClockStatus() {
 async function doClock() {
   const btn = document.getElementById('clock-btn');
   btn.disabled = true;
-  btn.textContent = 'Checking...';
 
-  // Sanitize staff name for Firebase path (remove dots, #, $, [, ], /)
   const staffKey = (state.staff || 'unknown').replace(/[.#$\[\]/]/g, '_');
   const todayKey = getTodayKey();
   const path = '/attendance/' + staffKey + '/' + todayKey;
@@ -2264,7 +2268,6 @@ async function doClock() {
 
   let clockType, updateData;
 
-  // Step 1: Read existing record from Firebase
   try {
     const existing = await fbGet(path);
     if (!existing || !existing.clockIn) {
@@ -2276,30 +2279,22 @@ async function doClock() {
     } else {
       showToast('Already clocked in & out today!');
       btn.disabled = true;
-      btn.textContent = '✓ Done for Today';
       return;
     }
   } catch(e) {
-    console.error('doClock fbGet error:', e);
     showToast('⚠ Firebase read failed.');
     btn.disabled = false;
-    btn.textContent = clockType === 'clockOut' ? '🔴 Clock Out' : '⏱ Clock In';
     return;
   }
 
-  // Step 2: Write to Firebase
   try {
     await fbUpdate(path, updateData);
   } catch(e) {
-    console.error('doClock fbUpdate error:', e);
     showToast('⚠ Firebase write failed: ' + e.message);
     btn.disabled = false;
-    btn.textContent = clockType === 'clockOut' ? '🔴 Clock Out' : '⏱ Clock In';
     return;
   }
 
-  // Step 3: Send to Google Sheet (non-blocking — show success even if GS fails)
-  btn.textContent = 'Saving to sheet...';
   try {
     await gsRequest({
       secret: GS_SECRET,
@@ -2311,13 +2306,43 @@ async function doClock() {
     });
   } catch(e) {
     console.error('doClock gsRequest error:', e);
-    // Firebase already saved — still treat as success, just warn
-    showToast('✓ ' + (clockType === 'clockIn' ? 'Clocked In' : 'Clocked Out') + ' (sheet sync failed)');
-    await loadClockStatus();
-    return;
   }
 
   showToast(clockType === 'clockIn' ? '✓ Clocked In!' : '✓ Clocked Out!');
+  await loadClockStatus();
+}
+
+async function undoClockOut() {
+  if (!confirm('Undo Clock Out?')) return;
+  const undoBtn = document.getElementById('undo-clock-btn');
+  undoBtn.disabled = true;
+
+  const staffKey = (state.staff || 'unknown').replace(/[.#$\[\]/]/g, '_');
+  const todayKey = getTodayKey();
+  const path = '/attendance/' + staffKey + '/' + todayKey;
+
+  try {
+    await fbUpdate(path, { clockOut: null });
+  } catch(e) {
+    showToast('⚠ Failed to undo.');
+    undoBtn.disabled = false;
+    return;
+  }
+
+  try {
+    await gsRequest({
+      secret: GS_SECRET,
+      type: 'attendance',
+      staff: state.staff,
+      date: todayKey,
+      clockType: 'undoClockOut',
+      time: new Date().toISOString(),
+    });
+  } catch(e) {
+    console.error('undoClockOut gsRequest error:', e);
+  }
+
+  showToast('Clock Out undone');
   await loadClockStatus();
 }
 
