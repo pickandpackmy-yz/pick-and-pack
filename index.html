@@ -1710,14 +1710,33 @@ function goMe() {
   showScreen('screen-me');
 }
 
-function saveContactInfo() {
+async function saveContactInfo() {
+  const email = document.getElementById('me-email').value.trim();
+  const phone = document.getElementById('me-phone').value.trim();
+
+  // 1. Save to localStorage (as before — fast local cache)
   const contactKey = 'contact_' + state.staff;
-  const data = {
-    email: document.getElementById('me-email').value,
-    phone: document.getElementById('me-phone').value,
-  };
-  localStorage.setItem(contactKey, JSON.stringify(data));
-  showToast('Contact info saved!');
+  localStorage.setItem(contactKey, JSON.stringify({ email, phone }));
+
+  // 2. Sync to Google Sheet in staff's own folder
+  const savBtn = document.querySelector('#me-contact-section button');
+  if (savBtn) { savBtn.disabled = true; savBtn.textContent = 'Saving...'; }
+  try {
+    await gsRequest({
+      secret: GS_SECRET,
+      type: 'saveContact',
+      staff: state.staff,
+      email,
+      phone,
+    });
+    showToast('✓ Contact info saved!');
+  } catch(e) {
+    // Still saved locally — just warn
+    console.error('saveContact GS error:', e);
+    showToast('✓ Saved locally (sync failed)');
+  } finally {
+    if (savBtn) { savBtn.disabled = false; savBtn.textContent = 'Save Contact Info'; }
+  }
 }
 
 async function loadMeLeaveSummary() {
@@ -2059,24 +2078,48 @@ async function addUser() {
   const pin = String(document.getElementById('new-user-pin').value).trim();
   if (!name) { showToast('⚠ Enter a name!'); return; }
   if (!/^\d{4}$/.test(pin)) { showToast('⚠ PIN must be exactly 4 digits!'); return; }
+
+  const btn = document.querySelector('.admin-add-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Adding...'; }
+
   try {
     // Check for duplicate PIN
     const data = await fbGet('/users');
     if (data) {
       for (const [n, info] of Object.entries(data)) {
         if (String(info.pin) === pin && n !== name) {
-          showToast('⚠ PIN already used by ' + n + '!'); return;
+          showToast('⚠ PIN already used by ' + n + '!');
+          if (btn) { btn.disabled = false; btn.textContent = '＋ Add User'; }
+          return;
         }
       }
     }
+    // 1. Save to Firebase
     await fbSet('/users/' + name, { pin: pin, role: newUserRole });
-    showToast('User ' + name + ' added!');
+
+    // 2. Create staff folder + spreadsheets in Google Drive (fire and await — important for folder setup)
+    try {
+      if (btn) btn.textContent = 'Setting up folder...';
+      await gsRequest({
+        secret: GS_SECRET,
+        type: 'addStaff',
+        staff: name,
+        role: newUserRole,
+      });
+    } catch(gsErr) {
+      // Non-fatal — Firebase user already created, Drive setup failed silently
+      console.error('addStaff Drive setup error:', gsErr);
+    }
+
+    showToast('✓ ' + name + ' added!');
     document.getElementById('new-user-name').value = '';
     document.getElementById('new-user-pin').value = '';
     loadAdminUsers();
   } catch(e) {
     console.error('addUser error:', e);
     showToast('⚠ ' + (e.message || 'Failed. Check connection.'));
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '＋ Add User'; }
   }
 }
 
