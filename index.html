@@ -2106,10 +2106,18 @@ function compressPhoto(dataUrl, maxWidth = 1200, quality = 0.75) {
 async function gsRequest(payload) {
   const res = await fetch(GS_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'text/plain' }, // text/plain avoids CORS preflight
+    headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify(payload),
     redirect: 'follow',
   });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
+
+// GET-based request — more reliable for attendance undo (avoids POST body loss on redirect)
+async function gsRequestGet(payload) {
+  const encoded = encodeURIComponent(JSON.stringify(payload));
+  const res = await fetch(GS_URL + '?data=' + encoded, { redirect: 'follow' });
   if (!res.ok) throw new Error('HTTP ' + res.status);
   return res.json();
 }
@@ -2336,7 +2344,7 @@ async function undoHomeClockIn() {
   try {
     await fetch(FB_URL + path + '.json', { method: 'DELETE' });
     try {
-      await gsRequest({ secret: GS_SECRET, type: 'attendance', staff: state.staff, date: todayKey, clockType: 'undoClockIn', time: new Date().toISOString() });
+      await gsRequestGet({ secret: GS_SECRET, type: 'attendance', staff: state.staff, date: todayKey, clockType: 'undoClockIn', time: new Date().toISOString() });
     } catch(gsErr) {
       console.error('undoHomeClockIn gsRequest error:', gsErr);
     }
@@ -2362,7 +2370,7 @@ async function undoHomeClockOut() {
     // Delete entire Firebase record for today so user can clock in fresh
     await fetch(FB_URL + path + '.json', { method: 'DELETE' });
     try {
-      await gsRequest({ secret: GS_SECRET, type: 'attendance', staff: state.staff, date: todayKey, clockType: 'undoClockOut', time: new Date().toISOString() });
+      await gsRequestGet({ secret: GS_SECRET, type: 'attendance', staff: state.staff, date: todayKey, clockType: 'undoClockOut', time: new Date().toISOString() });
     } catch(gsErr) {
       console.error('undoHomeClockOut gsRequest error:', gsErr);
     }
