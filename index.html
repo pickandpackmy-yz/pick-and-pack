@@ -921,25 +921,6 @@ document.addEventListener('gesturestart', function(e) {
       <div style="font-size:20px;font-weight:700;" id="me-name">—</div>
       <div style="font-size:13px;color:var(--text2);margin-top:4px;" id="me-role">Staff</div>
     </div>
-    <!-- ATTENDANCE CLOCK CARD -->
-    <div class="clock-card">
-      <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;">Attendance</div>
-      <div class="clock-time-display" id="clock-live-time">--:--:--</div>
-      <div class="clock-date-display" id="clock-live-date"></div>
-      <div class="clock-status-row">
-        <div class="clock-status-item">
-          <div class="clock-status-label">Clock In</div>
-          <div class="clock-status-value green" id="clock-in-display">—</div>
-        </div>
-        <div class="clock-status-item">
-          <div class="clock-status-label">Clock Out</div>
-          <div class="clock-status-value" id="clock-out-display">—</div>
-        </div>
-      </div>
-      <button class="clock-btn in" id="clock-btn" onclick="doClock()">⏱ Clock In</button>
-      <button id="undo-clockin-btn" onclick="undoClockIn()" style="display:none;margin-top:8px;width:100%;padding:10px;border:1px solid rgba(96,165,250,0.4);background:rgba(96,165,250,0.08);color:var(--blue);border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">↩ Undo Clock In</button>
-      <button id="undo-clock-btn" onclick="undoClockOut()" style="display:none;margin-top:8px;width:100%;padding:10px;border:1px solid rgba(248,113,113,0.4);background:rgba(248,113,113,0.08);color:var(--red);border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">↩ Undo Clock Out</button>
-    </div>
     <!-- Contact Info -->
     <div id="me-contact-section" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;">
       <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;">Contact Info</div>
@@ -1716,8 +1697,6 @@ function goMe() {
     loadMeLeaveSummary();
   }
   showScreen('screen-me');
-  startClockTimer();
-  loadClockStatus();
 }
 
 function saveContactInfo() {
