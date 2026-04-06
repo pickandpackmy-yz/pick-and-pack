@@ -1612,6 +1612,8 @@ async function checkPin() {
         bottomNav.classList.remove('owner-nav');
       }
       showScreen('screen-home');
+      startHomeClockTimer();
+      loadHomeClockStatus();
     } else {
       document.getElementById('login-error').textContent = 'Wrong PIN. Try again.';
       loginPin = ''; updatePinDots();
@@ -2197,207 +2199,8 @@ async function sendInvoiceToSheet(autoSave = false) {
   }
 }
 
-// ── HOME ATTENDANCE CLOCK ──
-let homeClockTimer = null;
-
-function startHomeClockTimer() {
-  if (homeClockTimer) clearInterval(homeClockTimer);
-  function tick() {
-    const now = new Date();
-    const timeEl = document.getElementById('home-clock-live-time');
-    const dateEl = document.getElementById('home-clock-live-date');
-    if (timeEl) timeEl.textContent = now.toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
-    if (dateEl) dateEl.textContent = now.toLocaleDateString('en-MY', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-  }
-  tick();
-  homeClockTimer = setInterval(tick, 1000);
-}
-
-async function loadHomeClockStatus() {
-  const staffKey = (state.staff || 'unknown').replace(/[.#$\[\]/]/g, '_');
-  const todayKey = getTodayKey();
-  const path = '/attendance/' + staffKey + '/' + todayKey;
-  try {
-    const data = await fbGet(path);
-    const inEl  = document.getElementById('home-clock-in-display');
-    const outEl = document.getElementById('home-clock-out-display');
-    const btn   = document.getElementById('home-clock-btn');
-    const undoInBtn  = document.getElementById('home-undo-clockin-btn');
-    const undoOutBtn = document.getElementById('home-undo-clockout-btn');
-    if (!data || !data.clockIn) {
-      inEl.textContent  = '—';
-      outEl.textContent = '—';
-      btn.textContent   = '⏱ Clock In';
-      btn.className     = 'clock-btn in';
-      btn.disabled      = false;
-      undoInBtn.style.display  = 'none';
-      undoOutBtn.style.display = 'none';
-    } else if (data.clockIn && !data.clockOut) {
-      inEl.textContent  = formatClockTime(data.clockIn);
-      outEl.textContent = '—';
-      btn.textContent   = '🔴 Clock Out';
-      btn.className     = 'clock-btn out';
-      btn.disabled      = false;
-      undoInBtn.style.display  = 'flex';
-      undoOutBtn.style.display = 'none';
-    } else {
-      inEl.textContent  = formatClockTime(data.clockIn);
-      outEl.textContent = formatClockTime(data.clockOut);
-      btn.textContent   = '✓ Done for Today';
-      btn.className     = 'clock-btn out';
-      btn.disabled      = true;
-      undoInBtn.style.display  = 'none';
-      undoOutBtn.style.display = 'flex';
-    }
-  } catch(e) {
-    console.error('loadHomeClockStatus error:', e);
-  }
-}
-
-async function doHomeClock() {
-  const btn = document.getElementById('home-clock-btn');
-  btn.disabled = true;
-  btn.textContent = 'Saving...';
-
-  const staffKey = (state.staff || 'unknown').replace(/[.#$\[\]/]/g, '_');
-  const todayKey = getTodayKey();
-  const path = '/attendance/' + staffKey + '/' + todayKey;
-  const now = new Date().toISOString();
-
-  let clockType, updateData;
-  try {
-    const existing = await fbGet(path);
-    if (!existing || !existing.clockIn) {
-      clockType  = 'clockIn';
-      updateData = { clockIn: now };
-    } else if (!existing.clockOut) {
-      clockType  = 'clockOut';
-      updateData = { clockOut: now };
-    } else {
-      showToast('Already clocked in & out today!');
-      btn.disabled = true;
-      return;
-    }
-  } catch(e) {
-    showToast('⚠ Firebase read failed.');
-    btn.disabled = false;
-    btn.textContent = clockType === 'clockIn' ? '⏱ Clock In' : '🔴 Clock Out';
-    return;
-  }
-
-  try {
-    await fbUpdate(path, updateData);
-  } catch(e) {
-    showToast('⚠ Firebase write failed: ' + e.message);
-    btn.disabled = false;
-    btn.textContent = clockType === 'clockIn' ? '⏱ Clock In' : '🔴 Clock Out';
-    return;
-  }
-
-  try {
-    await gsRequest({
-      secret: GS_SECRET,
-      type: 'attendance',
-      staff: state.staff,
-      date: todayKey,
-      clockType,
-      time: now,
-    });
-  } catch(e) {
-    console.error('doHomeClock gsRequest error:', e);
-  }
-
-  showToast(clockType === 'clockIn' ? '✓ Clocked In!' : '✓ Clocked Out!');
-  await loadHomeClockStatus();
-}
-
-async function undoHomeClockIn() {
-  if (!confirm('Undo Clock In? This will remove today\'s clock-in record.')) return;
-  const btn = document.getElementById('home-undo-clockin-btn');
-  btn.disabled = true;
-  btn.textContent = 'Undoing...';
-
-  const staffKey = (state.staff || 'unknown').replace(/[.#$\[\]/]/g, '_');
-  const todayKey = getTodayKey();
-  const path = '/attendance/' + staffKey + '/' + todayKey;
-
-  try {
-    await fetch(FB_URL + path + '.json', { method: 'DELETE' });
-  } catch(e) {
-    showToast('⚠ Failed to undo.');
-    btn.disabled = false;
-    btn.textContent = '↩ Undo Clock In';
-    return;
-  }
-
-  try {
-    await gsRequest({
-      secret: GS_SECRET,
-      type: 'attendance',
-      staff: state.staff,
-      date: todayKey,
-      clockType: 'undoClockIn',
-      time: new Date().toISOString(),
-    });
-  } catch(e) {
-    console.error('undoHomeClockIn gsRequest error:', e);
-  }
-
-  showToast('Clock In undone');
-  await loadHomeClockStatus();
-}
-
-async function undoHomeClockOut() {
-  if (!confirm('Undo Clock Out?')) return;
-  const btn = document.getElementById('home-undo-clockout-btn');
-  btn.disabled = true;
-  btn.textContent = 'Undoing...';
-
-  const staffKey = (state.staff || 'unknown').replace(/[.#$\[\]/]/g, '_');
-  const todayKey = getTodayKey();
-  const path = '/attendance/' + staffKey + '/' + todayKey;
-
-  try {
-    await fbUpdate(path, { clockOut: null });
-  } catch(e) {
-    showToast('⚠ Failed to undo.');
-    btn.disabled = false;
-    btn.textContent = '↩ Undo Clock Out';
-    return;
-  }
-
-  try {
-    await gsRequest({
-      secret: GS_SECRET,
-      type: 'attendance',
-      staff: state.staff,
-      date: todayKey,
-      clockType: 'undoClockOut',
-      time: new Date().toISOString(),
-    });
-  } catch(e) {
-    console.error('undoHomeClockOut gsRequest error:', e);
-  }
-
-  showToast('Clock Out undone');
-  await loadHomeClockStatus();
-}
-
-// ── ATTENDANCE / CLOCK IN-OUT (Me screen) ──
+// ── ATTENDANCE CLOCK (single unified set — Home screen only) ──
 let clockTimer = null;
-
-function startClockTimer() {
-  if (clockTimer) clearInterval(clockTimer);
-  function tick() {
-    const now = new Date();
-    const timeEl = document.getElementById('clock-live-time');
-    const dateEl = document.getElementById('clock-live-date');
-    if (timeEl) timeEl.textContent = now.toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
-    if (dateEl) dateEl.textContent = now.toLocaleDateString('en-MY', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-  }
-  tick();
-  clockTimer = setInterval(tick, 1000);
-}
 
 function getTodayKey() {
   const now = new Date();
@@ -2409,49 +2212,64 @@ function formatClockTime(isoStr) {
   return new Date(isoStr).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit', hour12: true });
 }
 
-async function loadClockStatus() {
+// startHomeClockTimer = the one timer that drives the live clock on Home
+function startHomeClockTimer() {
+  if (clockTimer) clearInterval(clockTimer);
+  function tick() {
+    const now = new Date();
+    const timeEl = document.getElementById('home-clock-live-time');
+    const dateEl = document.getElementById('home-clock-live-date');
+    if (timeEl) timeEl.textContent = now.toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+    if (dateEl) dateEl.textContent = now.toLocaleDateString('en-MY', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  }
+  tick();
+  clockTimer = setInterval(tick, 1000);
+}
+
+async function loadHomeClockStatus() {
   const staffKey = (state.staff || 'unknown').replace(/[.#$\[\]/]/g, '_');
   const todayKey = getTodayKey();
   const path = '/attendance/' + staffKey + '/' + todayKey;
   try {
     const data = await fbGet(path);
-    const inEl  = document.getElementById('clock-in-display');
-    const outEl = document.getElementById('clock-out-display');
-    const btn   = document.getElementById('clock-btn');
-    const undoBtn = document.getElementById('undo-clock-btn');
-    const undoInBtn = document.getElementById('undo-clockin-btn');
+    const inEl      = document.getElementById('home-clock-in-display');
+    const outEl     = document.getElementById('home-clock-out-display');
+    const btn       = document.getElementById('home-clock-btn');
+    const undoInBtn  = document.getElementById('home-undo-clockin-btn');
+    const undoOutBtn = document.getElementById('home-undo-clockout-btn');
     if (!data || !data.clockIn) {
-      inEl.textContent  = '—';
-      outEl.textContent = '—';
-      btn.textContent   = '⏱ Clock In';
-      btn.className     = 'clock-btn in';
-      btn.disabled      = false;
-      if (undoBtn) undoBtn.style.display = 'none';
-      if (undoInBtn) undoInBtn.style.display = 'none';
-    } else if (data.clockIn && !data.clockOut) {
-      inEl.textContent  = formatClockTime(data.clockIn);
-      outEl.textContent = '—';
-      btn.textContent   = '🔴 Clock Out';
-      btn.className     = 'clock-btn out';
-      btn.disabled      = false;
-      if (undoBtn) undoBtn.style.display = 'none';
-      if (undoInBtn) undoInBtn.style.display = 'block';
+      inEl.textContent     = '—';
+      outEl.textContent    = '—';
+      btn.textContent      = '⏱ Clock In';
+      btn.className        = 'clock-btn in';
+      btn.disabled         = false;
+      undoInBtn.style.display  = 'none';
+      undoOutBtn.style.display = 'none';
+    } else if (!data.clockOut) {
+      inEl.textContent     = formatClockTime(data.clockIn);
+      outEl.textContent    = '—';
+      btn.textContent      = '🔴 Clock Out';
+      btn.className        = 'clock-btn out';
+      btn.disabled         = false;
+      undoInBtn.style.display  = 'block';
+      undoOutBtn.style.display = 'none';
     } else {
-      inEl.textContent  = formatClockTime(data.clockIn);
-      outEl.textContent = formatClockTime(data.clockOut);
-      btn.textContent   = '✓ Done for Today';
-      btn.className     = 'clock-btn out';
-      btn.disabled      = true;
-      if (undoBtn) undoBtn.style.display = 'block';
-      if (undoInBtn) undoInBtn.style.display = 'none';
+      inEl.textContent     = formatClockTime(data.clockIn);
+      outEl.textContent    = formatClockTime(data.clockOut);
+      btn.textContent      = '✓ Done for Today';
+      btn.className        = 'clock-btn out';
+      btn.disabled         = true;
+      undoInBtn.style.display  = 'none';
+      undoOutBtn.style.display = 'block';
     }
   } catch(e) {
-    console.error('loadClockStatus error:', e);
+    console.error('loadHomeClockStatus error:', e);
   }
 }
 
-async function doClock() {
-  const btn = document.getElementById('clock-btn');
+async function doHomeClock() {
+  const btn = document.getElementById('home-clock-btn');
+  const prevText = btn.textContent;
   btn.disabled = true;
   btn.textContent = 'Saving...';
 
@@ -2459,7 +2277,6 @@ async function doClock() {
   const todayKey = getTodayKey();
   const path = '/attendance/' + staffKey + '/' + todayKey;
   const now = new Date().toISOString();
-
   let clockType, updateData;
 
   try {
@@ -2477,8 +2294,7 @@ async function doClock() {
     }
   } catch(e) {
     showToast('⚠ Firebase read failed.');
-    btn.disabled = false;
-    btn.textContent = '⏱ Clock In';
+    btn.disabled = false; btn.textContent = prevText;
     return;
   }
 
@@ -2486,33 +2302,22 @@ async function doClock() {
     await fbUpdate(path, updateData);
   } catch(e) {
     showToast('⚠ Firebase write failed: ' + e.message);
-    btn.disabled = false;
-    btn.textContent = clockType === 'clockIn' ? '⏱ Clock In' : '🔴 Clock Out';
+    btn.disabled = false; btn.textContent = prevText;
     return;
   }
 
   try {
-    await gsRequest({
-      secret: GS_SECRET,
-      type: 'attendance',
-      staff: state.staff,
-      date: todayKey,
-      clockType,
-      time: now,
-    });
-  } catch(e) {
-    console.error('doClock gsRequest error:', e);
-  }
+    await gsRequest({ secret: GS_SECRET, type: 'attendance', staff: state.staff, date: todayKey, clockType, time: now });
+  } catch(e) { console.error('doHomeClock gsRequest error:', e); }
 
   showToast(clockType === 'clockIn' ? '✓ Clocked In!' : '✓ Clocked Out!');
-  await loadClockStatus();
+  await loadHomeClockStatus();
 }
 
-async function undoClockIn() {
+async function undoHomeClockIn() {
   if (!confirm('Undo Clock In? This will remove today\'s clock-in record.')) return;
-  const undoInBtn = document.getElementById('undo-clockin-btn');
-  undoInBtn.disabled = true;
-  undoInBtn.textContent = 'Undoing...';
+  const btn = document.getElementById('home-undo-clockin-btn');
+  btn.disabled = true; btn.textContent = 'Undoing...';
 
   const staffKey = (state.staff || 'unknown').replace(/[.#$\[\]/]/g, '_');
   const todayKey = getTodayKey();
@@ -2522,33 +2327,21 @@ async function undoClockIn() {
     await fetch(FB_URL + path + '.json', { method: 'DELETE' });
   } catch(e) {
     showToast('⚠ Failed to undo.');
-    undoInBtn.disabled = false;
-    undoInBtn.textContent = '↩ Undo Clock In';
+    btn.disabled = false; btn.textContent = '↩ Undo Clock In';
     return;
   }
-
   try {
-    await gsRequest({
-      secret: GS_SECRET,
-      type: 'attendance',
-      staff: state.staff,
-      date: todayKey,
-      clockType: 'undoClockIn',
-      time: new Date().toISOString(),
-    });
-  } catch(e) {
-    console.error('undoClockIn gsRequest error:', e);
-  }
+    await gsRequest({ secret: GS_SECRET, type: 'attendance', staff: state.staff, date: todayKey, clockType: 'undoClockIn', time: new Date().toISOString() });
+  } catch(e) { console.error('undoHomeClockIn gsRequest error:', e); }
 
   showToast('Clock In undone');
-  await loadClockStatus();
+  await loadHomeClockStatus();
 }
 
-async function undoClockOut() {
+async function undoHomeClockOut() {
   if (!confirm('Undo Clock Out?')) return;
-  const undoBtn = document.getElementById('undo-clock-btn');
-  undoBtn.disabled = true;
-  undoBtn.textContent = 'Undoing...';
+  const btn = document.getElementById('home-undo-clockout-btn');
+  btn.disabled = true; btn.textContent = 'Undoing...';
 
   const staffKey = (state.staff || 'unknown').replace(/[.#$\[\]/]/g, '_');
   const todayKey = getTodayKey();
@@ -2558,26 +2351,15 @@ async function undoClockOut() {
     await fbUpdate(path, { clockOut: null });
   } catch(e) {
     showToast('⚠ Failed to undo.');
-    undoBtn.disabled = false;
-    undoBtn.textContent = '↩ Undo Clock Out';
+    btn.disabled = false; btn.textContent = '↩ Undo Clock Out';
     return;
   }
-
   try {
-    await gsRequest({
-      secret: GS_SECRET,
-      type: 'attendance',
-      staff: state.staff,
-      date: todayKey,
-      clockType: 'undoClockOut',
-      time: new Date().toISOString(),
-    });
-  } catch(e) {
-    console.error('undoClockOut gsRequest error:', e);
-  }
+    await gsRequest({ secret: GS_SECRET, type: 'attendance', staff: state.staff, date: todayKey, clockType: 'undoClockOut', time: new Date().toISOString() });
+  } catch(e) { console.error('undoHomeClockOut gsRequest error:', e); }
 
   showToast('Clock Out undone');
-  await loadClockStatus();
+  await loadHomeClockStatus();
 }
 
 // ── TOAST ──
