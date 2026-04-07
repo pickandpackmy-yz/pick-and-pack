@@ -596,20 +596,7 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { p
       <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:48px 32px 32px;">
         <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(245,200,66,0.12);border:1px solid rgba(245,200,66,0.25);border-radius:20px;padding:5px 14px;font-size:11px;font-weight:600;color:var(--accent);letter-spacing:0.5px;margin-bottom:20px;">📦 Pick &amp; Pack</div>
         <div style="font-size:36px;font-weight:700;line-height:1.15;letter-spacing:-0.5px;margin-bottom:10px;">Daily<br><span style="color:var(--accent);">Stock</span> Check</div>
-        <div style="font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:20px;" id="dash-live-date"></div>
-        <div style="display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 24px;">
-          <div>
-            <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:2px;">Welcome back</div>
-            <div style="font-size:16px;font-weight:700;" id="home-staff-name-dash">—</div>
-          </div>
-          <div style="width:1px;height:32px;background:var(--border);"></div>
-          <div style="text-align:right;">
-            <div style="font-size:20px;font-weight:700;color:var(--accent);font-family:'DM Mono',monospace;letter-spacing:1px;" id="dash-live-time">--:--</div>
-            <div style="display:inline-flex;margin-top:4px;background:rgba(245,200,66,0.12);border:1px solid rgba(245,200,66,0.25);border-radius:20px;padding:2px 10px;">
-              <span style="font-size:10px;color:var(--accent);font-weight:600;">Owner</span>
-            </div>
-          </div>
-        </div>
+        <div style="font-size:13px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:0;" id="dash-live-date"></div>
       </div>
 
       <!-- Overview + Attendance -->
@@ -1034,11 +1021,13 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { p
   </div>
 </div>
 
-<!-- OWNER ADMIN -->
 <div id="screen-admin" class="screen">
   <div class="header">
     <button class="header-back" onclick="goHome()">←</button>
     <div><div class="header-title">Admin Panel</div></div>
+    <button onclick="logout()" title="Logout" style="width:36px;height:36px;background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;margin-left:auto;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    </button>
   </div>
   <div class="admin-scroll">
 
@@ -2660,7 +2649,13 @@ function startDashClock() {
     const timeEl = document.getElementById('dash-live-time');
     const dateEl = document.getElementById('dash-live-date');
     if (timeEl) timeEl.textContent = now.toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit', hour12: true });
-    if (dateEl) dateEl.textContent = now.toLocaleDateString('en-MY', { weekday: 'short', day: 'numeric', month: 'short' });
+    if (dateEl) {
+      const weekday = now.toLocaleDateString('en-MY', { weekday: 'long' });
+      const day = String(now.getDate()).padStart(2, '0');
+      const month = now.toLocaleDateString('en-MY', { month: 'long' });
+      const year = now.getFullYear();
+      dateEl.textContent = weekday + ', ' + day + ' ' + month + ' ' + year;
+    }
   }
   tick();
   dashClockTimer = setInterval(tick, 1000);
@@ -2717,7 +2712,7 @@ async function loadDashboard() {
             </div>
             <div style="text-align:right;">
               <div style="font-size:12px;font-weight:600;color:var(--green);">IN &nbsp;${formatClockTime(r.clockIn)}</div>
-              <div style="font-size:11px;color:var(--text3);margin-top:2px;">${r.clockOut ? 'OUT ' + formatClockTime(r.clockOut) : 'Still in'}</div>
+              <div style="font-size:12px;font-weight:600;color:var(--text3);margin-top:2px;">${r.clockOut ? 'OUT ' + formatClockTime(r.clockOut) : 'Still in'}</div>
             </div>
           </div>`).join('');
       }
