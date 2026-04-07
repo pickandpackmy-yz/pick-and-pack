@@ -577,44 +577,131 @@ document.addEventListener('gesturestart', function(e) {
 
 <!-- HOME -->
 <div id="screen-home" class="screen">
-  <div class="has-nav" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px;padding-bottom:90px;">
-    <!-- Header -->
-    <div class="home-center" style="padding:24px 16px 8px;margin:0;">
-      <div class="home-tag">📦 Pick &amp; Pack</div>
-      <div class="home-title">Daily<br><span>Stock</span> Check</div>
+  <div class="has-nav" style="flex:1;overflow-y:auto;padding:0;display:flex;flex-direction:column;gap:0;padding-bottom:90px;">
 
-      <div class="home-staff-badge">
-        <span class="badge-dot"></span>
-        <span id="home-staff-name">—</span>
+    <!-- OWNER/SUPERVISOR DASHBOARD (hidden for staff) -->
+    <div id="home-dashboard" style="display:none;">
+      <!-- Dashboard Header Banner -->
+      <div style="background:linear-gradient(135deg,#1a1a1a 0%,#242424 100%);border-bottom:1px solid var(--border);padding:20px 16px 16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <div>
+            <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Welcome back</div>
+            <div style="font-size:22px;font-weight:700;letter-spacing:-0.3px;" id="home-staff-name-dash">—</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:13px;font-weight:600;color:var(--accent);font-family:'DM Mono',monospace;" id="dash-live-time">--:--</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px;" id="dash-live-date"></div>
+          </div>
+        </div>
+        <div style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;background:rgba(245,200,66,0.1);border:1px solid rgba(245,200,66,0.2);border-radius:20px;padding:4px 12px;">
+          <span style="font-size:11px;color:var(--accent);font-weight:600;" id="dash-role-badge">Owner</span>
+        </div>
+      </div>
+
+      <!-- Quick Stats Row -->
+      <div style="padding:14px 16px 0;">
+        <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">Today's Overview</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;">
+          <div onclick="navTo('leave')" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 10px;cursor:pointer;transition:all 0.15s;text-align:center;">
+            <div style="font-size:22px;font-weight:700;font-family:'DM Mono',monospace;color:var(--blue);" id="dash-pending-count">—</div>
+            <div style="font-size:10px;color:var(--text3);margin-top:2px;font-weight:500;">Pending<br>Leaves</div>
+          </div>
+          <div onclick="navTo('stock')" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 10px;cursor:pointer;transition:all 0.15s;text-align:center;">
+            <div style="font-size:22px;font-weight:700;font-family:'DM Mono',monospace;color:var(--green);" id="dash-clocked-count">—</div>
+            <div style="font-size:10px;color:var(--text3);margin-top:2px;font-weight:500;">Clocked<br>In Today</div>
+          </div>
+          <div onclick="navTo('stock')" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 10px;cursor:pointer;transition:all 0.15s;text-align:center;">
+            <div style="font-size:22px;font-weight:700;font-family:'DM Mono',monospace;color:var(--accent);" id="dash-stock-count">—</div>
+            <div style="font-size:10px;color:var(--text3);margin-top:2px;font-weight:500;">Items<br>Checked</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div style="padding:0 16px;">
+        <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">Quick Actions</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+          <button onclick="navTo('stock')" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;display:flex;align-items:center;gap:10px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;text-align:left;">
+            <span style="font-size:22px;">📦</span>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--text);">Stock Check</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:1px;">Daily report</div>
+            </div>
+          </button>
+          <button onclick="navTo('invoice')" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;display:flex;align-items:center;gap:10px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;text-align:left;">
+            <span style="font-size:22px;">🧾</span>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--text);">Invoice</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:1px;">Upload photo</div>
+            </div>
+          </button>
+          <button onclick="navTo('leave')" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;display:flex;align-items:center;gap:10px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;text-align:left;">
+            <span style="font-size:22px;">🗓️</span>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--text);">Leave</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:1px;"><span id="dash-pending-leave-label">Requests</span></div>
+            </div>
+          </button>
+          <button id="dash-admin-btn" onclick="navTo('admin')" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;align-items:center;gap:10px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;text-align:left;">
+            <span style="font-size:22px;">🔧</span>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--text);">Admin</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:1px;">Manage users</div>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Recent Attendance -->
+      <div style="padding:0 16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;">Staff Attendance Today</div>
+        </div>
+        <div id="dash-attendance-list" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:14px;">
+          <div style="padding:20px;text-align:center;color:var(--text3);font-size:13px;">Loading...</div>
+        </div>
       </div>
     </div>
-    <!-- ATTENDANCE CLOCK CARD ON HOME -->
-    <div class="clock-card" id="home-clock-card">
-      <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;">Attendance</div>
-      <div class="clock-time-display" id="home-clock-live-time">--:--:--</div>
-      <div class="clock-date-display" id="home-clock-live-date"></div>
-      <div class="clock-status-row">
-        <div class="clock-status-item">
-          <div class="clock-status-label">Clock In</div>
-          <div class="clock-status-value green" id="home-clock-in-display">—</div>
-        </div>
-        <div class="clock-status-item">
-          <div class="clock-status-label">Clock Out</div>
-          <div class="clock-status-value" id="home-clock-out-display">—</div>
+
+    <!-- STAFF HOME (shown for staff role) -->
+    <div id="home-staff-panel" style="display:none;padding:16px;display:none;flex-direction:column;gap:14px;">
+      <div class="home-center" style="padding:24px 16px 8px;margin:0;">
+        <div class="home-tag">📦 Pick &amp; Pack</div>
+        <div class="home-title">Daily<br><span>Stock</span> Check</div>
+        <div class="home-staff-badge">
+          <span class="badge-dot"></span>
+          <span id="home-staff-name">—</span>
         </div>
       </div>
-      <!-- Role selection (shown before clock in) -->
-      <div id="home-role-select" style="display:none;margin-bottom:10px;">
-        <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Your Role Today</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-          <button id="role-btn-cashier" onclick="selectClockRole('Cashier')" style="padding:14px;border:2px solid var(--border);background:var(--surface2);border-radius:var(--radius);font-size:14px;font-weight:600;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;">Cashier</button>
-          <button id="role-btn-kitchen" onclick="selectClockRole('Kitchen')" style="padding:14px;border:2px solid var(--border);background:var(--surface2);border-radius:var(--radius);font-size:14px;font-weight:600;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;">Kitchen</button>
+      <!-- ATTENDANCE CLOCK CARD ON HOME -->
+      <div class="clock-card" id="home-clock-card">
+        <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;">Attendance</div>
+        <div class="clock-time-display" id="home-clock-live-time">--:--:--</div>
+        <div class="clock-date-display" id="home-clock-live-date"></div>
+        <div class="clock-status-row">
+          <div class="clock-status-item">
+            <div class="clock-status-label">Clock In</div>
+            <div class="clock-status-value green" id="home-clock-in-display">—</div>
+          </div>
+          <div class="clock-status-item">
+            <div class="clock-status-label">Clock Out</div>
+            <div class="clock-status-value" id="home-clock-out-display">—</div>
+          </div>
         </div>
+        <!-- Role selection (shown before clock in) -->
+        <div id="home-role-select" style="display:none;margin-bottom:10px;">
+          <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Your Role Today</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <button id="role-btn-cashier" onclick="selectClockRole('Cashier')" style="padding:14px;border:2px solid var(--border);background:var(--surface2);border-radius:var(--radius);font-size:14px;font-weight:600;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;">Cashier</button>
+            <button id="role-btn-kitchen" onclick="selectClockRole('Kitchen')" style="padding:14px;border:2px solid var(--border);background:var(--surface2);border-radius:var(--radius);font-size:14px;font-weight:600;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;">Kitchen</button>
+          </div>
+        </div>
+        <button class="clock-btn in" id="home-clock-btn" onclick="doHomeClock()">Clock In</button>
+        <button id="home-undo-clockin-btn" onclick="undoHomeClockIn()" style="display:none;margin-top:8px;width:100%;padding:10px;border:1px solid rgba(96,165,250,0.4);background:rgba(96,165,250,0.08);color:var(--blue);border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Undo Clock In</button>
+        <button id="home-undo-clockout-btn" onclick="undoHomeClockOut()" style="display:none;margin-top:8px;width:100%;padding:10px;border:1px solid rgba(248,113,113,0.4);background:rgba(248,113,113,0.08);color:var(--red);border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Undo Clock Out</button>
       </div>
-      <button class="clock-btn in" id="home-clock-btn" onclick="doHomeClock()">Clock In</button>
-      <button id="home-undo-clockin-btn" onclick="undoHomeClockIn()" style="display:none;margin-top:8px;width:100%;padding:10px;border:1px solid rgba(96,165,250,0.4);background:rgba(96,165,250,0.08);color:var(--blue);border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Undo Clock In</button>
-      <button id="home-undo-clockout-btn" onclick="undoHomeClockOut()" style="display:none;margin-top:8px;width:100%;padding:10px;border:1px solid rgba(248,113,113,0.4);background:rgba(248,113,113,0.08);color:var(--red);border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Undo Clock Out</button>
     </div>
+
   </div>
 </div>
 
@@ -929,16 +1016,38 @@ document.addEventListener('gesturestart', function(e) {
     </div>
     <!-- Contact Info -->
     <div id="me-contact-section" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;">
-      <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;">Contact Info</div>
-      <div style="margin-bottom:10px;">
-        <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Gmail</div>
-        <input id="me-email" type="email" inputmode="email" placeholder="yourname@gmail.com" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;">Contact Info</div>
+        <button id="me-contact-edit-btn" onclick="toggleContactEdit()" style="display:none;background:rgba(245,200,66,0.12);color:var(--accent);border:1px solid rgba(245,200,66,0.3);border-radius:20px;padding:4px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">✏️ Edit</button>
       </div>
-      <div style="margin-bottom:12px;">
-        <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Phone Number</div>
-        <input id="me-phone" type="tel" inputmode="tel" placeholder="01X-XXXXXXXX" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;">
+
+      <!-- VIEW MODE -->
+      <div id="me-contact-view" style="display:none;">
+        <div style="margin-bottom:10px;">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Gmail</div>
+          <div id="me-email-display" style="font-size:14px;color:var(--text);padding:10px 12px;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border);">—</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Phone Number</div>
+          <div id="me-phone-display" style="font-size:14px;color:var(--text);padding:10px 12px;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border);">—</div>
+        </div>
       </div>
-      <button onclick="saveContactInfo()" style="width:100%;background:var(--accent);color:#000;border:none;border-radius:var(--radius-sm);padding:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Save Contact Info</button>
+
+      <!-- EDIT MODE -->
+      <div id="me-contact-form" style="display:block;">
+        <div style="margin-bottom:10px;">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Gmail</div>
+          <input id="me-email" type="email" inputmode="email" placeholder="yourname@gmail.com" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;">
+        </div>
+        <div style="margin-bottom:12px;">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Phone Number</div>
+          <input id="me-phone" type="tel" inputmode="tel" placeholder="01X-XXXXXXXX" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;">
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button id="me-contact-cancel-btn" onclick="cancelContactEdit()" style="display:none;flex:1;background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Cancel</button>
+          <button id="me-contact-save-btn" onclick="saveContactInfo()" style="flex:1;background:var(--accent);color:#000;border:none;border-radius:var(--radius-sm);padding:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Save Contact Info</button>
+        </div>
+      </div>
     </div>
     <!-- Logout -->
     <button onclick="logout()" style="width:100%;background:rgba(248,113,113,0.1);color:var(--red);border:1px solid rgba(248,113,113,0.3);border-radius:var(--radius);padding:14px;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:8px;margin-bottom:80px;">
@@ -1153,8 +1262,20 @@ if (homeDateEl) homeDateEl.textContent = state.date;
 if (state.loggedIn && state.staff) {
   document.getElementById('home-staff-name').textContent = state.staff;
   showScreen('screen-home');
-  // Start clock timer immediately on page load if already logged in
-  setTimeout(() => { startHomeClockTimer(); loadHomeClockStatus(); }, 0);
+  // Start appropriate home for role
+  setTimeout(() => {
+    if (state.staffRole === 'owner' || state.staffRole === 'supervisor') {
+      document.getElementById('home-dashboard').style.display = 'block';
+      document.getElementById('home-staff-panel').style.display = 'none';
+      startDashClock();
+      loadDashboard();
+    } else {
+      document.getElementById('home-dashboard').style.display = 'none';
+      document.getElementById('home-staff-panel').style.display = 'flex';
+      startHomeClockTimer();
+      loadHomeClockStatus();
+    }
+  }, 0);
 } else {
   state.loggedIn = false;
   showScreen('screen-login');
@@ -1183,7 +1304,20 @@ function showScreen(id) {
     if (tabMap[id]) setActiveNav(tabMap[id]);
   }
 }
-function goHome() { showScreen('screen-home'); startHomeClockTimer(); loadHomeClockStatus(); }
+function goHome() {
+  showScreen('screen-home');
+  if (state.staffRole === 'owner' || state.staffRole === 'supervisor') {
+    document.getElementById('home-dashboard').style.display = 'block';
+    document.getElementById('home-staff-panel').style.display = 'none';
+    startDashClock();
+    loadDashboard();
+  } else {
+    document.getElementById('home-dashboard').style.display = 'none';
+    document.getElementById('home-staff-panel').style.display = 'flex';
+    startHomeClockTimer();
+    loadHomeClockStatus();
+  }
+}
 function goCategories() { renderCategories(); showScreen('screen-categories'); }
 function goItems() { renderItems(state.currentCategory); showScreen('screen-items'); }
 function populateInvoiceDateSelects() {
@@ -1585,8 +1719,17 @@ async function checkPin() {
         bottomNav.classList.remove('owner-nav');
       }
       showScreen('screen-home');
-      startHomeClockTimer();
-      loadHomeClockStatus();
+      if (matchedUser.role === 'owner' || matchedUser.role === 'supervisor') {
+        document.getElementById('home-dashboard').style.display = 'block';
+        document.getElementById('home-staff-panel').style.display = 'none';
+        startDashClock();
+        loadDashboard();
+      } else {
+        document.getElementById('home-dashboard').style.display = 'none';
+        document.getElementById('home-staff-panel').style.display = 'flex';
+        startHomeClockTimer();
+        loadHomeClockStatus();
+      }
     } else {
       document.getElementById('login-error').textContent = 'Wrong PIN. Try again.';
       loginPin = ''; updatePinDots();
@@ -1640,7 +1783,7 @@ function setActiveNav(tab) {
 function navTo(tab) {
   setActiveNav(tab);
   if (tab === 'home') {
-    showScreen('screen-home');
+    goHome();
   } else if (tab === 'stock') {
     renderCategories();
     showScreen('screen-categories');
@@ -1667,11 +1810,48 @@ function goMe() {
     contactSection.style.display = 'block';
     const contactKey = 'contact_' + state.staff;
     const saved = JSON.parse(localStorage.getItem(contactKey) || '{}');
-    document.getElementById('me-email').value = saved.email || '';
-    document.getElementById('me-phone').value = saved.phone || '';
+    const hasContact = saved.email || saved.phone;
+    if (hasContact) {
+      // Show VIEW mode
+      document.getElementById('me-contact-view').style.display = 'block';
+      document.getElementById('me-contact-form').style.display = 'none';
+      document.getElementById('me-contact-edit-btn').style.display = 'block';
+      document.getElementById('me-email-display').textContent = saved.email || '—';
+      document.getElementById('me-phone-display').textContent = saved.phone || '—';
+      document.getElementById('me-email').value = saved.email || '';
+      document.getElementById('me-phone').value = saved.phone || '';
+    } else {
+      // Show FORM mode (first time)
+      document.getElementById('me-contact-view').style.display = 'none';
+      document.getElementById('me-contact-form').style.display = 'block';
+      document.getElementById('me-contact-edit-btn').style.display = 'none';
+      document.getElementById('me-contact-cancel-btn').style.display = 'none';
+      document.getElementById('me-email').value = '';
+      document.getElementById('me-phone').value = '';
+    }
     loadMeLeaveSummary();
   }
   showScreen('screen-me');
+}
+
+function toggleContactEdit() {
+  // Switch from VIEW to EDIT
+  document.getElementById('me-contact-view').style.display = 'none';
+  document.getElementById('me-contact-form').style.display = 'block';
+  document.getElementById('me-contact-edit-btn').style.display = 'none';
+  document.getElementById('me-contact-cancel-btn').style.display = 'block';
+}
+
+function cancelContactEdit() {
+  // Switch back to VIEW
+  const contactKey = 'contact_' + state.staff;
+  const saved = JSON.parse(localStorage.getItem(contactKey) || '{}');
+  document.getElementById('me-email-display').textContent = saved.email || '—';
+  document.getElementById('me-phone-display').textContent = saved.phone || '—';
+  document.getElementById('me-contact-view').style.display = 'block';
+  document.getElementById('me-contact-form').style.display = 'none';
+  document.getElementById('me-contact-edit-btn').style.display = 'block';
+  document.getElementById('me-contact-cancel-btn').style.display = 'none';
 }
 
 async function saveContactInfo() {
@@ -1683,7 +1863,7 @@ async function saveContactInfo() {
   localStorage.setItem(contactKey, JSON.stringify({ email, phone }));
 
   // 2. Sync to Google Sheet in staff's own folder
-  const savBtn = document.querySelector('#me-contact-section button');
+  const savBtn = document.getElementById('me-contact-save-btn');
   if (savBtn) { savBtn.disabled = true; savBtn.textContent = 'Saving...'; }
   try {
     await gsRequest({
@@ -1701,6 +1881,14 @@ async function saveContactInfo() {
   } finally {
     if (savBtn) { savBtn.disabled = false; savBtn.textContent = 'Save Contact Info'; }
   }
+
+  // 3. Switch to view mode
+  document.getElementById('me-email-display').textContent = email || '—';
+  document.getElementById('me-phone-display').textContent = phone || '—';
+  document.getElementById('me-contact-view').style.display = 'block';
+  document.getElementById('me-contact-form').style.display = 'none';
+  document.getElementById('me-contact-edit-btn').style.display = 'block';
+  document.getElementById('me-contact-cancel-btn').style.display = 'none';
 }
 
 async function loadMeLeaveSummary() {
@@ -2436,6 +2624,112 @@ async function undoHomeClockOut() {
   } catch(e) {
     showToast('⚠ Failed to undo.');
     btn.disabled = false; btn.textContent = '↩ Undo Clock Out';
+  }
+}
+
+// ── DASHBOARD (Owner / Supervisor) ──
+let dashClockTimer = null;
+
+function startDashClock() {
+  if (dashClockTimer) clearInterval(dashClockTimer);
+  function tick() {
+    const now = new Date();
+    const timeEl = document.getElementById('dash-live-time');
+    const dateEl = document.getElementById('dash-live-date');
+    if (timeEl) timeEl.textContent = now.toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit', hour12: true });
+    if (dateEl) dateEl.textContent = now.toLocaleDateString('en-MY', { weekday: 'short', day: 'numeric', month: 'short' });
+  }
+  tick();
+  dashClockTimer = setInterval(tick, 1000);
+}
+
+async function loadDashboard() {
+  // Set name and role
+  const nameEl = document.getElementById('home-staff-name-dash');
+  const badgeEl = document.getElementById('dash-role-badge');
+  const adminBtn = document.getElementById('dash-admin-btn');
+  if (nameEl) nameEl.textContent = state.staff || '—';
+  if (badgeEl) {
+    const roleLabels = { owner: '👑 Owner', supervisor: '🔵 Supervisor' };
+    badgeEl.textContent = roleLabels[state.staffRole] || state.staffRole;
+  }
+  if (adminBtn && state.staffRole === 'owner') adminBtn.style.display = 'flex';
+
+  // Load pending leaves count
+  try {
+    const leaves = await fbGet('/leaves');
+    let pending = 0;
+    if (leaves) {
+      pending = Object.values(leaves).filter(l => l.status === 'pending').length;
+    }
+    const pendingEl = document.getElementById('dash-pending-count');
+    const pendingLabel = document.getElementById('dash-pending-leave-label');
+    if (pendingEl) pendingEl.textContent = pending;
+    if (pendingLabel) pendingLabel.textContent = pending > 0 ? pending + ' Pending' : 'No pending';
+    if (pendingEl) pendingEl.style.color = pending > 0 ? 'var(--red)' : 'var(--blue)';
+  } catch(e) {
+    const pendingEl = document.getElementById('dash-pending-count');
+    if (pendingEl) pendingEl.textContent = '—';
+  }
+
+  // Load attendance today
+  try {
+    const todayKey = getTodayKey();
+    const attendance = await fbGet('/attendance');
+    let clockedCount = 0;
+    let attendanceRows = [];
+    if (attendance) {
+      for (const [staff, days] of Object.entries(attendance)) {
+        if (days[todayKey]) {
+          clockedCount++;
+          attendanceRows.push({ staff, ...days[todayKey] });
+        }
+      }
+    }
+    const clockedEl = document.getElementById('dash-clocked-count');
+    if (clockedEl) clockedEl.textContent = clockedCount;
+
+    const attList = document.getElementById('dash-attendance-list');
+    if (attList) {
+      if (!attendanceRows.length) {
+        attList.innerHTML = '<div style="padding:18px;text-align:center;color:var(--text3);font-size:13px;">No one clocked in yet</div>';
+      } else {
+        attList.innerHTML = attendanceRows.map((r, i) => `
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;${i < attendanceRows.length-1 ? 'border-bottom:1px solid var(--border);' : ''}">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:32px;height:32px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:14px;">👤</div>
+              <div>
+                <div style="font-size:13px;font-weight:600;">${r.staff.replace(/_/g,' ')}</div>
+                <div style="font-size:11px;color:var(--text3);">${r.role || 'Staff'}</div>
+              </div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:12px;font-weight:600;color:var(--green);">IN ${formatClockTime(r.clockIn)}</div>
+              ${r.clockOut ? `<div style="font-size:11px;color:var(--text3);">OUT ${formatClockTime(r.clockOut)}</div>` : '<div style="font-size:11px;color:var(--text3);">Still in</div>'}
+            </div>
+          </div>`).join('');
+      }
+    }
+  } catch(e) {
+    const attList = document.getElementById('dash-attendance-list');
+    if (attList) attList.innerHTML = '<div style="padding:18px;text-align:center;color:var(--text3);font-size:13px;">Failed to load</div>';
+  }
+
+  // Load stock items checked today
+  try {
+    const todayKey = getTodayKey();
+    const stockData = await fbGet('/stock/' + todayKey);
+    let checked = 0;
+    if (stockData) {
+      for (const staffRecords of Object.values(stockData)) {
+        checked += Object.keys(staffRecords).length;
+      }
+    }
+    const stockEl = document.getElementById('dash-stock-count');
+    if (stockEl) stockEl.textContent = checked;
+  } catch(e) {
+    const stockEl = document.getElementById('dash-stock-count');
+    if (stockEl) stockEl.textContent = '—';
   }
 }
 
