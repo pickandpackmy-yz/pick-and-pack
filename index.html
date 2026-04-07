@@ -669,6 +669,12 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { p
     
   </div>
   <div class="category-list has-nav" id="category-list" style="flex:1;"></div>
+  
+  <div style="padding:16px; border-top:1px solid var(--border); background:var(--bg); margin-bottom: 70px;">
+    <button id="send-stock-btn" class="save-btn" onclick="sendStockToSheet()" style="margin:0;">
+      Submit to Sheet
+    </button>
+  </div>
 </div>
 
 <div id="screen-items" class="screen">
@@ -687,6 +693,7 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { p
     <button class="header-back" onclick="goItems()">←</button>
     <div>
       <div class="header-title" id="form-header-title">Enter Stock</div>
+      <div class="header-sub" id="form-header-sub" style="display:none;color:var(--accent);">✏ Editing saved item</div>
     </div>
   </div>
   <div class="form-scroll">
@@ -763,7 +770,7 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { p
       <textarea class="remarks-input" id="fld-remarks" placeholder="Remarks (optional)..."></textarea>
     </div>
 
-    <button class="save-btn" id="item-save-btn" onclick="saveItem()">Save</button>
+    <button class="save-btn" onclick="saveItem()">Save</button>
   </div>
 </div>
 
@@ -1379,16 +1386,28 @@ function renderItems(cat) {
   const list = document.getElementById('item-list');
   list.innerHTML = items.map(p => {
     const rec = state.records[p.n];
-    const dotClass = !rec ? '' : 'filled';
-    const meta = rec ? `O:${rec.opening} R:${rec.restock} C:${rec.closing}` : p.c;
-    return `<div class="item-card" onclick="openItem('${p.n.replace(/'/g,"\\'")}')">
-     
-      <div class="item-info">
-        <div class="item-name">${p.n}</div>
-        <div class="item-meta">${meta}</div>
-      </div>
-      <div class="item-diff"></div>
-    </div>`;
+    const isSaved = !!rec;
+    if (isSaved) {
+      return `<div class="item-card" style="border-color:var(--green);background:rgba(74,222,128,0.06);">
+        <div style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--green);flex-shrink:0;">
+          <span style="color:#000;font-size:14px;font-weight:700;">✓</span>
+        </div>
+        <div class="item-info">
+          <div class="item-name">${p.n}</div>
+          <div class="item-meta" style="color:var(--green);font-size:11px;">O:${rec.opening ?? '—'} &nbsp;R:${rec.restock ?? '—'} &nbsp;C:${rec.closing ?? '—'}</div>
+        </div>
+        <button onclick="event.stopPropagation();openItem('${p.n.replace(/'/g,"\\'")}');" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 14px;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;">✏ Edit</button>
+      </div>`;
+    } else {
+      return `<div class="item-card" onclick="openItem('${p.n.replace(/'/g,"\\'")}')">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--surface2);border:2px solid var(--border);flex-shrink:0;"></div>
+        <div class="item-info">
+          <div class="item-name">${p.n}</div>
+          <div class="item-meta">${p.c}</div>
+        </div>
+        <span style="color:var(--text3);font-size:18px;">›</span>
+      </div>`;
+    }
   }).join('');
 }
 
@@ -1398,6 +1417,7 @@ function openItem(name) {
   if (!p) return;
   state.currentItem = name;
   const rec = state.records[name] || {};
+  const isEditing = !!state.records[name];
   state.formData = {
     opening: rec.opening ?? null,
     restock: rec.restock ?? null,
@@ -1409,6 +1429,12 @@ function openItem(name) {
     rejectPhotos: rec.rejectPhotos ?? [],
   };
   state.discountOn = rec.discount_qty != null && rec.discount_qty > 0;
+  // Show/hide edit badge
+  const subEl = document.getElementById('form-header-sub');
+  if (subEl) subEl.style.display = isEditing ? 'block' : 'none';
+  // Update save button label
+  const saveBtn = document.getElementById('item-save-btn');
+  if (saveBtn) saveBtn.textContent = isEditing ? 'Update' : 'Save';
   renderForm(p);
   showScreen('screen-form');
 }
@@ -1454,31 +1480,25 @@ async function saveItem() {
   const closing = f.closing ?? null;
   const discQty = (state.discountOn && f.discount_qty) ? f.discount_qty : null;
   const remarks = document.getElementById('fld-remarks').value || '';
-  // 检查是否需要上传 Reject 照片
+  // Check reject photo required
   if (rejectedQty > 0 && (!f.rejectPhotos || f.rejectPhotos.length === 0)) {
     showToast('⚠ Upload reject photo first!');
     document.getElementById('reject-photo-section').scrollIntoView({behavior:'smooth'});
     return;
   }
-  // 防止双击，改变按钮状态
+  // Anti-double-click
   const btn = document.getElementById('item-save-btn');
-  if (btn) {
-    btn.disabled = true;
-    btn.textContent = 'Saving...';
-  }
+  if (btn && btn.disabled) return;
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
   try {
     const itemPayload = {
       name: state.currentItem,
-      opening: opening,
-      restock: restock,
-      return_item: ret,
-      rejected: rejectedQty,
-      discount_qty: discQty,
-      closing: closing,
-      remarks: remarks
+      opening, restock, return_item: ret,
+      rejected: rejectedQty, discount_qty: discQty,
+      closing, remarks
     };
     const dateKey = getTodayDateKey();
-    // 1. 如果有损坏物品照片，先上传照片
+    // 1. Upload reject photos first (with aggressive compression)
     if (f.rejectPhotos && f.rejectPhotos.length > 0) {
       for (let i = 0; i < f.rejectPhotos.length; i++) {
         if (btn) btn.textContent = `Uploading photo ${i+1}/${f.rejectPhotos.length}...`;
@@ -1487,46 +1507,44 @@ async function saveItem() {
         await gsRequest({
           secret: GS_SECRET,
           type: 'rejectPhoto',
-          dateKey: dateKey,
+          dateKey,
           imageBase64: base64,
           fileName: 'reject_' + state.currentItem.replace(/\s+/g,'_') + '_' + (i+1) + '.jpg',
           itemName: state.currentItem,
         });
       }
     }
-    // 2. 直接提交该物品数据到 Google Sheet
+    // 2. Save stock data to Google Sheet (also re-writes staffName to B3 every time)
     if (btn) btn.textContent = 'Saving to Sheet...';
     const result = await gsRequest({
       secret: GS_SECRET,
       type: 'saveStock',
-      dateKey: dateKey,
+      dateKey,
       staffName: state.staff || '',
       cashierName: state.staff || '',
       items: [itemPayload]
     });
-    if (result && result.status === 'error') {
-      throw new Error(result.message);
-    }
-    // 3. 提交成功后，才保存到手机本地缓存
+    if (result && result.status === 'error') throw new Error(result.message);
+    // 3. Save to local cache only after GS success
     state.records[state.currentItem] = {
       ...f,
       opening, restock, return_item: ret, rejected: rejectedQty, closing,
       discount_qty: discQty,
       cost: p.cost, sell: p.sell,
       category: p.c, supplier: p.s,
-      loss_rejected: rejectedQty * p.cost,
-      loss_discount: discQty * (p.sell - p.cost) * 0.5,
+      loss_rejected: (rejectedQty || 0) * p.cost,
+      loss_discount: (discQty || 0) * (p.sell - p.cost) * 0.5,
     };
     saveState();
     showToast('Saved ✓');
     setTimeout(() => goItems(), 600);
-  } catch (e) {
+  } catch(e) {
     showToast('⚠ Failed: ' + e.message);
   } finally {
-    // 恢复按钮状态
     if (btn) {
       btn.disabled = false;
-      btn.textContent = 'Save';
+      // Restore correct label based on whether it was already saved
+      btn.textContent = state.records[state.currentItem] ? 'Update' : 'Save';
     }
   }
 }
@@ -2326,7 +2344,8 @@ const GS_URL = 'https://script.google.com/macros/s/AKfycbydgWyg5RH0Tiw2h8m7BBNWr
 const GS_SECRET = '668811';
 
 // Compress image to reduce base64 size before uploading
-function compressPhoto(dataUrl, maxWidth = 1200, quality = 0.75) {
+// Uses aggressive compression to avoid Google Apps Script quota limits
+function compressPhoto(dataUrl, maxWidth = 800, quality = 0.55) {
   return new Promise(resolve => {
     const img = new Image();
     img.onload = () => {
