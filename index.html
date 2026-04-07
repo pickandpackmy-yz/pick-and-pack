@@ -669,12 +669,6 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { p
     
   </div>
   <div class="category-list has-nav" id="category-list" style="flex:1;"></div>
-  
-  <div style="padding:16px; border-top:1px solid var(--border); background:var(--bg); margin-bottom: 70px;">
-    <button id="send-stock-btn" class="save-btn" onclick="sendStockToSheet()" style="margin:0;">
-      Submit to Sheet
-    </button>
-  </div>
 </div>
 
 <div id="screen-items" class="screen">
@@ -1449,9 +1443,15 @@ function toggleDiscount() {
 
 function updateCalc() {}
 
-function saveItem() {
+async function saveItem() {
   const p = PRODUCTS.find(x => x.n === state.currentItem);
   if (!p) return;
+
+  // Anti-double-click
+  const saveBtn = document.querySelector('#screen-form .save-btn');
+  if (saveBtn && saveBtn.disabled) return;
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Saving...'; }
+
   const f = state.formData;
   const opening = f.opening ?? 0;
   const restock = f.restock ?? 0;
@@ -1462,6 +1462,7 @@ function saveItem() {
   if (rejectedQty > 0 && (!f.rejectPhotos || f.rejectPhotos.length === 0)) {
     showToast('⚠ Upload reject photo first!');
     document.getElementById('reject-photo-section').scrollIntoView({behavior:'smooth'});
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save'; }
     return;
   }
 
@@ -1475,7 +1476,55 @@ function saveItem() {
     loss_discount: discQty * (p.sell - p.cost) * 0.5,
   };
   saveState();
-  showToast('Saved ✓');
+
+  try {
+    const dateKey = getTodayDateKey();
+
+    // Upload reject photos if any
+    if (rejectedQty > 0 && f.rejectPhotos && f.rejectPhotos.length > 0) {
+      for (let i = 0; i < f.rejectPhotos.length; i++) {
+        if (saveBtn) saveBtn.textContent = `Uploading photo ${i+1}/${f.rejectPhotos.length}...`;
+        const compressed = await compressPhoto(f.rejectPhotos[i]);
+        const base64 = compressed.split(',')[1];
+        await gsRequest({
+          secret: GS_SECRET,
+          type: 'rejectPhoto',
+          dateKey,
+          imageBase64: base64,
+          fileName: 'reject_' + p.n.replace(/\s+/g,'_') + '_' + (i+1) + '.jpg',
+          itemName: p.n,
+        });
+      }
+    }
+
+    // Submit this single item to sheet
+    if (saveBtn) saveBtn.textContent = 'Saving to Sheet...';
+    await gsRequest({
+      secret: GS_SECRET,
+      type: 'saveStock',
+      dateKey,
+      staffName: state.staff || '',
+      cashierName: state.staff || '',
+      items: [{
+        name: p.n,
+        opening,
+        restock,
+        return_item: ret,
+        rejected: rejectedQty,
+        discount_qty: discQty,
+        closing,
+        remarks: f.remarks || '',
+      }],
+    });
+
+    showToast('Saved ✓');
+  } catch(e) {
+    console.error('saveItem sheet error:', e);
+    showToast('⚠ Saved locally, sheet sync failed');
+  } finally {
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save'; }
+  }
+
   setTimeout(() => goItems(), 600);
 }
 
@@ -2733,89 +2782,8 @@ async function setupTodayStockTab() {
   }
 }
 
-// ── SEND ALL STOCK DATA TO GOOGLE SHEET ──
-// Call this when user wants to submit all records for the day.
-// Add a "Submit to Sheet" button on your categories/home page and call this.
-async function sendStockToSheet() {
-  const btn = document.getElementById('send-stock-btn');  // add this button to your HTML
-  if (!btn) return;
+// sendStockToSheet removed — stock is now saved per-item in saveItem()
 
-  // Anti-double-click
-  if (btn.disabled) return;
-  btn.disabled = true;
-  btn.textContent = 'Saving...';
-
-  try {
-    // Build items array from state.records
-    const items = [];
-    for (const [name, rec] of Object.entries(state.records)) {
-      items.push({
-        name        : name,
-        opening     : rec.opening     ?? null,
-        restock     : rec.restock     ?? null,
-        return_item : rec.return_item ?? null,
-        rejected    : rec.rejected    ?? null,
-        discount_qty: rec.discount_qty ?? null,
-        closing     : rec.closing     ?? null,
-        remarks     : rec.remarks     || '',
-      });
-    }
-
-    if (items.length === 0) {
-      showToast('No stock data to save');
-      btn.disabled = false;
-      btn.textContent = 'Submit to Sheet';
-      return;
-    }
-
-    const dateKey = getTodayDateKey();
-
-    // Step 1: Upload reject photos first
-    for (const [name, rec] of Object.entries(state.records)) {
-      if (!rec.rejectPhotos || rec.rejectPhotos.length === 0) continue;
-      for (let i = 0; i < rec.rejectPhotos.length; i++) {
-        btn.textContent = `Uploading photos (${name})...`;
-        const compressed = await compressPhoto(rec.rejectPhotos[i]);
-        const base64     = compressed.split(',')[1];
-        await gsRequest({
-          secret     : GS_SECRET,
-          type       : 'rejectPhoto',
-          dateKey    : dateKey,
-          imageBase64: base64,
-          fileName   : 'reject_' + name.replace(/\s+/g,'_') + '_' + (i+1) + '.jpg',
-          itemName   : name,
-        });
-      }
-    }
-
-    // Step 2: Save stock data to sheet
-    btn.textContent = 'Saving to Sheet...';
-    const result = await gsRequest({
-      secret     : GS_SECRET,
-      type       : 'saveStock',
-      dateKey    : dateKey,
-      staffName  : state.staff || '',
-      cashierName: state.staff || '',
-      items      : items,
-    });
-
-    if (result && result.status === 'error') {
-      throw new Error(result.message);
-    }
-
-    showToast('✓ Stock saved to Google Sheet!');
-    btn.textContent = 'Submit to Sheet ✓';
-    setTimeout(() => {
-      btn.disabled = false;
-      btn.textContent = 'Submit to Sheet';
-    }, 3000);
-
-  } catch(e) {
-    showToast('⚠ Failed: ' + e.message);
-    btn.disabled = false;
-    btn.textContent = 'Submit to Sheet';
-  }
-}
 </script>
 </body>
 </html>
