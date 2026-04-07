@@ -2738,6 +2738,127 @@ function showToast(msg) {
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2500);
 }
+
+// Helper: get today's dateKey in "DD-MM-YYYY" format (Malaysia time)
+function getTodayDateKey() {
+  const now = new Date();
+  // Adjust to UTC+8
+  const myt = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+  const dd  = String(myt.getUTCDate()).padStart(2, '0');
+  const mm  = String(myt.getUTCMonth() + 1).padStart(2, '0');
+  const yyyy = myt.getUTCFullYear();
+  return dd + '-' + mm + '-' + yyyy;   // "07-04-2026"
+}
+
+// ── SETUP TODAY'S TAB ──
+// Call this once when the app loads (or when user opens Stock section).
+// It's safe to call multiple times — backend is idempotent.
+async function setupTodayStockTab() {
+  try {
+    await gsRequest({
+      secret     : GS_SECRET,
+      type       : 'setupTodayTab',
+      dateKey    : getTodayDateKey(),
+      staffName  : state.staff || '',
+      cashierName: state.staff || '',
+    });
+    console.log('Stock tab ready for today');
+  } catch(e) {
+    console.warn('setupTodayStockTab failed (non-critical):', e.message);
+  }
+}
+
+// ── SEND ALL STOCK DATA TO GOOGLE SHEET ──
+// Call this when user wants to submit all records for the day.
+// Add a "Submit to Sheet" button on your categories/home page and call this.
+async function sendStockToSheet() {
+  const btn = document.getElementById('send-stock-btn');  // add this button to your HTML
+  if (!btn) return;
+
+  // Anti-double-click
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+
+  try {
+    // Build items array from state.records
+    const items = [];
+    for (const [name, rec] of Object.entries(state.records)) {
+      items.push({
+        name        : name,
+        opening     : rec.opening     ?? null,
+        restock     : rec.restock     ?? null,
+        return_item : rec.return_item ?? null,
+        rejected    : rec.rejected    ?? null,
+        discount_qty: rec.discount_qty ?? null,
+        closing     : rec.closing     ?? null,
+        remarks     : rec.remarks     || '',
+      });
+    }
+
+    if (items.length === 0) {
+      showToast('No stock data to save');
+      btn.disabled = false;
+      btn.textContent = 'Submit to Sheet';
+      return;
+    }
+
+    const dateKey = getTodayDateKey();
+
+    // Step 1: Upload reject photos first
+    for (const [name, rec] of Object.entries(state.records)) {
+      if (!rec.rejectPhotos || rec.rejectPhotos.length === 0) continue;
+      for (let i = 0; i < rec.rejectPhotos.length; i++) {
+        btn.textContent = `Uploading photos (${name})...`;
+        const compressed = await compressPhoto(rec.rejectPhotos[i]);
+        const base64     = compressed.split(',')[1];
+        await gsRequest({
+          secret     : GS_SECRET,
+          type       : 'rejectPhoto',
+          dateKey    : dateKey,
+          imageBase64: base64,
+          fileName   : 'reject_' + name.replace(/\s+/g,'_') + '_' + (i+1) + '.jpg',
+          itemName   : name,
+        });
+      }
+    }
+
+    // Step 2: Save stock data to sheet
+    btn.textContent = 'Saving to Sheet...';
+    const result = await gsRequest({
+      secret     : GS_SECRET,
+      type       : 'saveStock',
+      dateKey    : dateKey,
+      staffName  : state.staff || '',
+      cashierName: state.staff || '',
+      items      : items,
+    });
+
+    if (result && result.status === 'error') {
+      throw new Error(result.message);
+    }
+
+    showToast('✓ Stock saved to Google Sheet!');
+    btn.textContent = 'Submit to Sheet ✓';
+    setTimeout(() => {
+      btn.disabled = false;
+      btn.textContent = 'Submit to Sheet';
+    }, 3000);
+
+  } catch(e) {
+    showToast('⚠ Failed: ' + e.message);
+    btn.disabled = false;
+    btn.textContent = 'Submit to Sheet';
+  }
+}
+
+// ── AUTO SETUP TAB WHEN STOCK PAGE IS OPENED ──
+// In your navTo() function, add this inside the tab === 'stock' block:
+//
+//   } else if (tab === 'stock') {
+//     setupTodayStockTab();   // <-- add this line
+//     ...existing code...
+//   }
 </script>
 </body>
 </html>
