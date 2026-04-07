@@ -533,7 +533,7 @@ document.addEventListener('touchstart', function(e) {
 let lastTouchEnd = 0;
 document.addEventListener('touchend', function(e) {
   const now = Date.now();
-  if (now - lastTouchEnd <= 500) e.preventDefault();
+  if (now - lastTouchEnd <= 300) e.preventDefault();
   lastTouchEnd = now;
 }, { passive: false });
 
@@ -558,18 +558,18 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { p
       <div class="pin-dot" id="dot-3"></div>
     </div>
     <div class="login-numpad">
-      <button class="login-key" onclick="loginKey('7')">7</button>
-      <button class="login-key" onclick="loginKey('8')">8</button>
-      <button class="login-key" onclick="loginKey('9')">9</button>
-      <button class="login-key" onclick="loginKey('4')">4</button>
-      <button class="login-key" onclick="loginKey('5')">5</button>
-      <button class="login-key" onclick="loginKey('6')">6</button>
-      <button class="login-key" onclick="loginKey('1')">1</button>
-      <button class="login-key" onclick="loginKey('2')">2</button>
-      <button class="login-key" onclick="loginKey('3')">3</button>
+      <button class="login-key" ontouchstart="loginKey('7')" onclick="loginKey('7')">7</button>
+      <button class="login-key" ontouchstart="loginKey('8')" onclick="loginKey('8')">8</button>
+      <button class="login-key" ontouchstart="loginKey('9')" onclick="loginKey('9')">9</button>
+      <button class="login-key" ontouchstart="loginKey('4')" onclick="loginKey('4')">4</button>
+      <button class="login-key" ontouchstart="loginKey('5')" onclick="loginKey('5')">5</button>
+      <button class="login-key" ontouchstart="loginKey('6')" onclick="loginKey('6')">6</button>
+      <button class="login-key" ontouchstart="loginKey('1')" onclick="loginKey('1')">1</button>
+      <button class="login-key" ontouchstart="loginKey('2')" onclick="loginKey('2')">2</button>
+      <button class="login-key" ontouchstart="loginKey('3')" onclick="loginKey('3')">3</button>
       <button class="login-key empty"></button>
-      <button class="login-key" onclick="loginKey('0')">0</button>
-      <button class="login-key del" onclick="loginDel()">⌫</button>
+      <button class="login-key" ontouchstart="loginKey('0')" onclick="loginKey('0')">0</button>
+      <button class="login-key del" ontouchstart="loginDel()" onclick="loginDel()">⌫</button>
     </div>
     <div class="login-error" id="login-error"></div>
   </div>
@@ -1651,17 +1651,28 @@ async function fbUpdate(path, data) {
 
 // ── LOGIN ──
 let loginPin = '';
+let loginChecking = false;
+let loginLastTouch = 0;
 
 function loginKey(k) {
+  const now = Date.now();
+  if (now - loginLastTouch < 350) return; // block click if touchstart already fired
+  loginLastTouch = now;
+  if (loginChecking) return;
   if (loginPin.length >= 4) return;
   loginPin += k;
   updatePinDots();
   if (loginPin.length === 4) {
-    setTimeout(checkPin, 150);
+    loginChecking = true;
+    setTimeout(checkPin, 120);
   }
 }
 
 function loginDel() {
+  const now = Date.now();
+  if (now - loginLastTouch < 350) return;
+  loginLastTouch = now;
+  if (loginChecking) return;
   loginPin = loginPin.slice(0, -1);
   updatePinDots();
   document.getElementById('login-error').textContent = '';
@@ -1682,7 +1693,7 @@ async function checkPin() {
     const data = await fbGet('/users');
     if (!data) {
       document.getElementById('login-error').textContent = 'Connection error. Try again.';
-      loginPin = ''; updatePinDots(); return;
+      loginPin = ''; loginChecking = false; updatePinDots(); return;
     }
     let matchedUser = null;
     for (const [name, info] of Object.entries(data)) {
@@ -1692,6 +1703,7 @@ async function checkPin() {
       }
     }
     if (matchedUser) {
+      loginChecking = false;
       state.staff = matchedUser.name;
       state.staffRole = matchedUser.role;
       document.getElementById('home-staff-name').textContent = matchedUser.name;
@@ -1736,11 +1748,11 @@ async function checkPin() {
       }
     } else {
       document.getElementById('login-error').textContent = 'Wrong PIN. Try again.';
-      loginPin = ''; updatePinDots();
+      loginPin = ''; loginChecking = false; updatePinDots();
     }
   } catch(e) {
     document.getElementById('login-error').textContent = 'Connection error. Try again.';
-    loginPin = ''; updatePinDots();
+    loginPin = ''; loginChecking = false; updatePinDots();
   }
 }
 
