@@ -2269,7 +2269,7 @@ async function addUser() {
     // 2. Create staff folder + spreadsheets in Google Drive (fire and await — important for folder setup)
     try {
       if (btn) btn.textContent = 'Setting up folder...';
-      await gsRequest({
+      await gsRequestGet({
         secret: GS_SECRET,
         type: 'addStaff',
         staff: name,
@@ -2278,6 +2278,7 @@ async function addUser() {
     } catch(gsErr) {
       // Non-fatal — Firebase user already created, Drive setup failed silently
       console.error('addStaff Drive setup error:', gsErr);
+      showToast('⚠ Folder setup failed! Check console.');
     }
 
     showToast('✓ ' + name + ' added!');
