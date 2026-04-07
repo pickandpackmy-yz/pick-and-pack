@@ -669,12 +669,6 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { p
     
   </div>
   <div class="category-list has-nav" id="category-list" style="flex:1;"></div>
-  
-  <div style="padding:16px; border-top:1px solid var(--border); background:var(--bg); margin-bottom: 70px;">
-    <button id="send-stock-btn" class="save-btn" onclick="sendStockToSheet()" style="margin:0;">
-      Submit to Sheet
-    </button>
-  </div>
 </div>
 
 <div id="screen-items" class="screen">
@@ -769,7 +763,7 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { p
       <textarea class="remarks-input" id="fld-remarks" placeholder="Remarks (optional)..."></textarea>
     </div>
 
-    <button class="save-btn" onclick="saveItem()">Save</button>
+    <button class="save-btn" id="item-save-btn" onclick="saveItem()">Save</button>
   </div>
 </div>
 
@@ -1449,34 +1443,92 @@ function toggleDiscount() {
 
 function updateCalc() {}
 
-function saveItem() {
+async function saveItem() {
   const p = PRODUCTS.find(x => x.n === state.currentItem);
   if (!p) return;
   const f = state.formData;
-  const opening = f.opening ?? 0;
-  const restock = f.restock ?? 0;
-  const ret = f.return_item ?? 0;
-  const rejectedQty = f.rejected ?? 0;
-  const closing = f.closing ?? 0;
-  const discQty = (state.discountOn && f.discount_qty) ? f.discount_qty : 0;
+  const opening = f.opening ?? null;
+  const restock = f.restock ?? null;
+  const ret = f.return_item ?? null;
+  const rejectedQty = f.rejected ?? null;
+  const closing = f.closing ?? null;
+  const discQty = (state.discountOn && f.discount_qty) ? f.discount_qty : null;
+  const remarks = document.getElementById('fld-remarks').value || '';
+  // 检查是否需要上传 Reject 照片
   if (rejectedQty > 0 && (!f.rejectPhotos || f.rejectPhotos.length === 0)) {
     showToast('⚠ Upload reject photo first!');
     document.getElementById('reject-photo-section').scrollIntoView({behavior:'smooth'});
     return;
   }
-
-  state.records[state.currentItem] = {
-    ...f,
-    opening, restock, return_item: ret, rejected: rejectedQty, closing,
-    discount_qty: discQty,
-    cost: p.cost, sell: p.sell,
-    category: p.c, supplier: p.s,
-    loss_rejected: rejectedQty * p.cost,
-    loss_discount: discQty * (p.sell - p.cost) * 0.5,
-  };
-  saveState();
-  showToast('Saved ✓');
-  setTimeout(() => goItems(), 600);
+  // 防止双击，改变按钮状态
+  const btn = document.getElementById('item-save-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+  }
+  try {
+    const itemPayload = {
+      name: state.currentItem,
+      opening: opening,
+      restock: restock,
+      return_item: ret,
+      rejected: rejectedQty,
+      discount_qty: discQty,
+      closing: closing,
+      remarks: remarks
+    };
+    const dateKey = getTodayDateKey();
+    // 1. 如果有损坏物品照片，先上传照片
+    if (f.rejectPhotos && f.rejectPhotos.length > 0) {
+      for (let i = 0; i < f.rejectPhotos.length; i++) {
+        if (btn) btn.textContent = `Uploading photo ${i+1}/${f.rejectPhotos.length}...`;
+        const compressed = await compressPhoto(f.rejectPhotos[i]);
+        const base64 = compressed.split(',')[1];
+        await gsRequest({
+          secret: GS_SECRET,
+          type: 'rejectPhoto',
+          dateKey: dateKey,
+          imageBase64: base64,
+          fileName: 'reject_' + state.currentItem.replace(/\s+/g,'_') + '_' + (i+1) + '.jpg',
+          itemName: state.currentItem,
+        });
+      }
+    }
+    // 2. 直接提交该物品数据到 Google Sheet
+    if (btn) btn.textContent = 'Saving to Sheet...';
+    const result = await gsRequest({
+      secret: GS_SECRET,
+      type: 'saveStock',
+      dateKey: dateKey,
+      staffName: state.staff || '',
+      cashierName: state.staff || '',
+      items: [itemPayload]
+    });
+    if (result && result.status === 'error') {
+      throw new Error(result.message);
+    }
+    // 3. 提交成功后，才保存到手机本地缓存
+    state.records[state.currentItem] = {
+      ...f,
+      opening, restock, return_item: ret, rejected: rejectedQty, closing,
+      discount_qty: discQty,
+      cost: p.cost, sell: p.sell,
+      category: p.c, supplier: p.s,
+      loss_rejected: rejectedQty * p.cost,
+      loss_discount: discQty * (p.sell - p.cost) * 0.5,
+    };
+    saveState();
+    showToast('Saved ✓');
+    setTimeout(() => goItems(), 600);
+  } catch (e) {
+    showToast('⚠ Failed: ' + e.message);
+  } finally {
+    // 恢复按钮状态
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Save';
+    }
+  }
 }
 
 // ── NUMPAD ──
