@@ -544,7 +544,6 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { p
 </script>
 </head>
 <body>
-<!-- LOGIN -->
 <div id="screen-login" class="screen">
   <div class="login-logo">🏪</div>
   <div class="login-title">Daily Stock Report</div>
@@ -575,11 +574,9 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { p
   </div>
 </div>
 
-<!-- HOME -->
 <div id="screen-home" class="screen">
   <div class="has-nav" style="flex:1;overflow-y:auto;padding:0;display:flex;flex-direction:column;gap:0;padding-bottom:90px;">
 
-    <!-- SUPERVISOR HOME -->
     <div id="home-supervisor" style="display:none;flex:1;align-items:center;justify-content:center;flex-direction:column;min-height:80dvh;text-align:center;padding:40px 32px;">
       <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(245,200,66,0.12);border:1px solid rgba(245,200,66,0.25);border-radius:20px;padding:5px 14px;font-size:11px;font-weight:600;color:var(--accent);letter-spacing:0.5px;margin-bottom:20px;">📦 Pick &amp; Pack</div>
       <div style="font-size:36px;font-weight:700;line-height:1.15;letter-spacing:-0.5px;margin-bottom:10px;">Daily<br><span style="color:var(--accent);">Stock</span> Check</div>
@@ -589,20 +586,16 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { p
       </div>
     </div>
 
-    <!-- OWNER DASHBOARD -->
     <div id="home-dashboard" style="display:none;flex-direction:column;">
 
-      <!-- Hero section (same style as supervisor) -->
       <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:48px 32px 32px;">
         <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(245,200,66,0.12);border:1px solid rgba(245,200,66,0.25);border-radius:20px;padding:5px 14px;font-size:11px;font-weight:600;color:var(--accent);letter-spacing:0.5px;margin-bottom:20px;">📦 Pick &amp; Pack</div>
         <div style="font-size:36px;font-weight:700;line-height:1.15;letter-spacing:-0.5px;margin-bottom:10px;">Daily<br><span style="color:var(--accent);">Stock</span> Check</div>
         <div style="font-size:13px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:0;" id="dash-live-date"></div>
       </div>
 
-      <!-- Overview + Attendance -->
       <div style="padding:0 16px 16px;display:flex;flex-direction:column;gap:16px;">
 
-        <!-- Pending Leaves -->
         <div>
           <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Overview</div>
           <div onclick="navTo('leave')" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
@@ -617,7 +610,6 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { p
           </div>
         </div>
 
-        <!-- Staff Attendance -->
         <div>
           <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Staff Attendance Today</div>
           <div id="dash-attendance-list" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
@@ -628,7 +620,6 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { p
       </div>
     </div>
 
-    <!-- STAFF HOME (shown for staff role) -->
     <div id="home-staff-panel" style="display:none;padding:16px;display:none;flex-direction:column;gap:14px;">
       <div class="home-center" style="padding:24px 16px 8px;margin:0;">
         <div class="home-tag">📦 Pick &amp; Pack</div>
@@ -638,7 +629,6 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { p
           <span id="home-staff-name">—</span>
         </div>
       </div>
-      <!-- ATTENDANCE CLOCK CARD ON HOME -->
       <div class="clock-card" id="home-clock-card">
         <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;">Attendance</div>
         <div class="clock-time-display" id="home-clock-live-time">--:--:--</div>
@@ -653,7 +643,6 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { p
             <div class="clock-status-value" id="home-clock-out-display">—</div>
           </div>
         </div>
-        <!-- Role selection (shown before clock in) -->
         <div id="home-role-select" style="display:none;margin-bottom:10px;">
           <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Your Role Today</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
@@ -670,7 +659,6 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { p
   </div>
 </div>
 
-<!-- CATEGORIES -->
 <div id="screen-categories" class="screen">
   <div class="header">
     <button class="header-back" onclick="goHome()">←</button>
@@ -680,10 +668,15 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { p
     </div>
     
   </div>
-  <div class="category-list has-nav" id="category-list"></div>
+  <div class="category-list has-nav" id="category-list" style="flex:1;"></div>
+  
+  <div style="padding:16px; border-top:1px solid var(--border); background:var(--bg); margin-bottom: 70px;">
+    <button id="send-stock-btn" class="save-btn" onclick="sendStockToSheet()" style="margin:0;">
+      Submit to Sheet
+    </button>
+  </div>
 </div>
 
-<!-- ITEMS -->
 <div id="screen-items" class="screen">
   <div class="header">
     <button class="header-back" onclick="goCategories()">←</button>
@@ -695,7 +688,6 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { p
   <div class="item-list has-nav" id="item-list"></div>
 </div>
 
-<!-- FORM -->
 <div id="screen-form" class="screen">
   <div class="header">
     <button class="header-back" onclick="goItems()">←</button>
@@ -709,7 +701,6 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { p
       <div class="form-item-cat" id="form-item-cat"></div>
       <div class="form-prices" id="form-prices" style="margin-top:8px;"></div>
     </div>
-</div>
 
     <div class="form-grid">
       <div class="form-field" onclick="openNumpad('opening','Opening Stock')">
@@ -774,8 +765,6 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { p
       </div>
     </div>
 
-
-
     <div class="remarks-field">
       <textarea class="remarks-input" id="fld-remarks" placeholder="Remarks (optional)..."></textarea>
     </div>
@@ -784,7 +773,6 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { p
   </div>
 </div>
 
-<!-- PHOTO -->
 <div id="screen-photo" class="screen">
   <div class="header">
     <button class="header-back" onclick="goHome()">←</button>
@@ -792,13 +780,11 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { p
   </div>
   <div style="flex:1;overflow-y:auto;padding:16px;padding-bottom:90px;display:flex;flex-direction:column;gap:16px;">
 
-    <!-- Invoice Number -->
     <div>
       <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Invoice Number</div>
       <input class="do-input" id="do-number" type="text" placeholder="Enter invoice number" inputmode="text" style="text-align:left;letter-spacing:0;font-family:'DM Sans',sans-serif;font-size:15px;">
     </div>
 
-    <!-- Invoice Date -->
     <div>
       <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Invoice Date</div>
       <div style="display:grid;grid-template-columns:2fr 2fr 3fr;gap:6px;">
@@ -808,13 +794,11 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { p
       </div>
     </div>
 
-    <!-- Invoice Amount -->
     <div>
       <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Invoice Amount (RM)</div>
       <input id="invoice-amount" type="number" inputmode="decimal" placeholder="0.00" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;font-size:18px;font-family:'DM Mono',monospace;color:var(--text);outline:none;">
     </div>
 
-    <!-- Pick Up Info -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
       <div>
         <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Pick Up By</div>
@@ -830,7 +814,6 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { p
       </div>
     </div>
 
-    <!-- Upload buttons -->
     <div>
       <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Photos</div>
       <div style="display:flex;gap:10px;">
@@ -845,18 +828,15 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { p
       </div>
     </div>
 
-    <!-- Remarks -->
     <div>
       <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Remarks</div>
       <textarea id="invoice-remarks" placeholder="Optional..." style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;resize:none;height:80px;"></textarea>
     </div>
 
-    <!-- Photo preview grid -->
     <div id="photo-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"></div>
 
   </div>
 
-  <!-- Save button at bottom -->
   <div style="padding:16px;margin-bottom:60px;border-top:1px solid var(--border);background:var(--bg);">
     <button id="send-sheet-btn" class="save-btn" onclick="saveDO()" style="margin:0;">Save</button>
   </div>
@@ -864,7 +844,6 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { p
 
 
 
-<!-- NUMPAD -->
 <div class="numpad-overlay" id="numpad-overlay" onclick="closeNumpadOutside(event)">
   <div class="numpad-sheet">
     <div class="numpad-field-label" id="numpad-label"></div>
@@ -887,7 +866,6 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { p
   </div>
 </div>
 
-<!-- STAFF PORTAL -->
 <div id="screen-portal" class="screen">
   <div class="header">
     <button class="header-back" onclick="goHome()">←</button>
@@ -900,7 +878,6 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { p
       <button class="portal-tab" id="tab-approve" onclick="switchPortalTab('approve')" style="display:none">Approve</button>
     </div>
 
-    <!-- APPLY TAB -->
     <div id="portal-apply">
       <div class="leave-card">
         <div class="portal-section-title" style="margin-bottom:12px;">Leave Type</div>
@@ -910,12 +887,10 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { p
           <div class="leave-type-btn" onclick="selectLeaveType('Emergency')" id="lt-Emergency">Emergency<br>Leave</div>
         </div>
         <div class="portal-section-title">Duration</div>
-        <!-- Full Day / Half Day toggle -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
           <div class="leave-type-btn" id="dur-full" onclick="selectDuration('full')" style="padding:10px;">Full Day</div>
           <div class="leave-type-btn" id="dur-half" onclick="selectDuration('half')" style="padding:10px;">Half Day</div>
         </div>
-        <!-- Morning / Afternoon (only shown for half day) -->
         <div id="half-day-section" style="display:none;margin-bottom:12px;">
           <div class="portal-label" style="margin-bottom:6px;">Session</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
@@ -951,13 +926,11 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { p
       <button id="submit-leave-btn" class="save-btn" onclick="submitLeave()" style="margin-top:4px;">Submit Application</button>
     </div>
 
-    <!-- HISTORY TAB -->
     <div id="portal-history" style="display:none;">
       <div class="portal-section-title">My Leave Requests</div>
       <div id="my-leave-list"><div class="empty-state">No requests yet</div></div>
     </div>
 
-    <!-- APPROVE TAB (Supervisor only) -->
     <div id="portal-approve" style="display:none;">
       <div class="portal-section-title">Pending Requests</div>
       <div id="approve-leave-list"><div class="empty-state">No pending requests</div></div>
@@ -967,26 +940,22 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { p
 
 
 
-<!-- ME SCREEN -->
 <div id="screen-me" class="screen">
   <div class="header">
     <div><div class="header-title">My Profile</div></div>
   </div>
   <div class="has-nav" style="flex:1;overflow-y:auto;padding:20px 16px;display:flex;flex-direction:column;gap:12px;">
-    <!-- Profile Card -->
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px 16px;text-align:center;">
       <div style="width:64px;height:64px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 12px;">👤</div>
       <div style="font-size:20px;font-weight:700;" id="me-name">—</div>
       <div style="font-size:13px;color:var(--text2);margin-top:4px;" id="me-role">Staff</div>
     </div>
-    <!-- Contact Info -->
     <div id="me-contact-section" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
         <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;">Contact Info</div>
         <button id="me-contact-edit-btn" onclick="toggleContactEdit()" style="display:none;background:rgba(245,200,66,0.12);color:var(--accent);border:1px solid rgba(245,200,66,0.3);border-radius:20px;padding:4px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">✏️ Edit</button>
       </div>
 
-      <!-- VIEW MODE -->
       <div id="me-contact-view" style="display:none;">
         <div style="margin-bottom:10px;">
           <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Gmail</div>
@@ -998,7 +967,6 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { p
         </div>
       </div>
 
-      <!-- EDIT MODE -->
       <div id="me-contact-form" style="display:block;">
         <div style="margin-bottom:10px;">
           <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Gmail</div>
@@ -1014,7 +982,6 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { p
         </div>
       </div>
     </div>
-    <!-- Logout -->
     <button onclick="logout()" style="width:100%;background:rgba(248,113,113,0.1);color:var(--red);border:1px solid rgba(248,113,113,0.3);border-radius:var(--radius);padding:14px;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:8px;margin-bottom:80px;">
       Log Out
     </button>
@@ -1031,13 +998,11 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { p
   </div>
   <div class="admin-scroll">
 
-    <!-- User List -->
     <div>
       <div class="admin-section-title">All Users</div>
       <div id="admin-user-list"><div class="empty-state">Loading...</div></div>
     </div>
 
-    <!-- Add New User -->
     <div>
       <div class="admin-section-title">Add New User</div>
       <div class="add-user-card">
@@ -1055,7 +1020,6 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { p
   </div>
 </div>
 
-<!-- BOTTOM NAV -->
 <div class="bottom-nav" id="bottom-nav">
   <button class="nav-btn active" id="nav-home" onclick="navTo('home')">
     <span class="nav-icon">🏠</span>Home
@@ -1798,6 +1762,7 @@ function navTo(tab) {
   if (tab === 'home') {
     goHome();
   } else if (tab === 'stock') {
+    setupTodayStockTab(); // ADDED: Auto trigger tab creation
     renderCategories();
     showScreen('screen-categories');
   } else if (tab === 'invoice') {
@@ -2851,14 +2816,6 @@ async function sendStockToSheet() {
     btn.textContent = 'Submit to Sheet';
   }
 }
-
-// ── AUTO SETUP TAB WHEN STOCK PAGE IS OPENED ──
-// In your navTo() function, add this inside the tab === 'stock' block:
-//
-//   } else if (tab === 'stock') {
-//     setupTodayStockTab();   // <-- add this line
-//     ...existing code...
-//   }
 </script>
 </body>
 </html>
