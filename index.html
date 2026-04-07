@@ -581,14 +581,10 @@ document.addEventListener('gesturestart', function(e) {
 
     <!-- SUPERVISOR HOME -->
     <div id="home-supervisor" style="display:none;flex:1;align-items:center;justify-content:center;flex-direction:column;min-height:80dvh;">
-      <div style="text-align:center;padding:40px 32px;">
-        <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(245,200,66,0.12);border:1px solid rgba(245,200,66,0.25);border-radius:20px;padding:5px 14px;font-size:11px;font-weight:600;color:var(--accent);letter-spacing:0.5px;margin-bottom:20px;">📦 Pick &amp; Pack</div>
-        <div style="font-size:34px;font-weight:700;line-height:1.15;letter-spacing:-0.5px;margin-bottom:8px;">Daily<br><span style="color:var(--accent);">Stock</span> Check</div>
-        <div style="display:inline-flex;align-items:center;gap:8px;background:var(--surface);border:2px solid var(--green);border-radius:10px;padding:10px 20px;margin-top:8px;">
-          <span style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;"></span>
-          <span style="font-size:14px;font-weight:600;" id="home-supervisor-name">—</span>
-          <span style="font-size:12px;color:var(--text2);">· Supervisor</span>
-        </div>
+      <div style="display:inline-flex;align-items:center;gap:10px;background:var(--surface);border:2px solid var(--green);border-radius:12px;padding:14px 28px;">
+        <span style="width:9px;height:9px;border-radius:50%;background:var(--green);flex-shrink:0;display:inline-block;"></span>
+        <span style="font-size:16px;font-weight:600;" id="home-supervisor-name">—</span>
+        <span style="font-size:13px;color:var(--text2);">· Supervisor</span>
       </div>
     </div>
 
@@ -596,17 +592,17 @@ document.addEventListener('gesturestart', function(e) {
     <div id="home-dashboard" style="display:none;">
       <!-- Header -->
       <div style="background:var(--surface);border-bottom:1px solid var(--border);padding:20px 16px 16px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
           <div>
             <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Welcome back</div>
             <div style="font-size:22px;font-weight:700;letter-spacing:-0.3px;" id="home-staff-name-dash">—</div>
           </div>
-          <div style="text-align:right;">
+          <div style="text-align:right;flex-shrink:0;">
             <div style="font-size:14px;font-weight:700;color:var(--accent);font-family:'DM Mono',monospace;" id="dash-live-time">--:--</div>
-            <div style="font-size:11px;color:var(--text3);margin-top:3px;" id="dash-live-date"></div>
+            <div style="font-size:11px;color:var(--text3);margin-top:3px;white-space:nowrap;" id="dash-live-date"></div>
           </div>
         </div>
-        <div style="display:inline-flex;align-items:center;gap:6px;margin-top:10px;background:rgba(245,200,66,0.1);border:1px solid rgba(245,200,66,0.25);border-radius:20px;padding:4px 12px;">
+        <div style="display:inline-flex;align-items:center;margin-top:10px;background:rgba(245,200,66,0.1);border:1px solid rgba(245,200,66,0.25);border-radius:20px;padding:4px 12px;">
           <span style="font-size:11px;color:var(--accent);font-weight:600;">Owner</span>
         </div>
       </div>
@@ -2679,15 +2675,15 @@ async function loadDashboard() {
         attList.innerHTML = attendanceRows.map((r, i) => `
           <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;${i < attendanceRows.length-1 ? 'border-bottom:1px solid var(--border);' : ''}">
             <div style="display:flex;align-items:center;gap:10px;">
-              <div style="width:32px;height:32px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:14px;">👤</div>
+              <div style="width:32px;height:32px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">👤</div>
               <div>
                 <div style="font-size:13px;font-weight:600;">${r.staff.replace(/_/g,' ')}</div>
-                <div style="font-size:11px;color:var(--text3);">${r.role || 'Staff'}</div>
+                <div style="font-size:11px;color:var(--text3);margin-top:2px;">${r.role || 'Staff'}</div>
               </div>
             </div>
             <div style="text-align:right;">
-              <div style="font-size:12px;font-weight:600;color:var(--green);">IN ${formatClockTime(r.clockIn)}</div>
-              ${r.clockOut ? `<div style="font-size:11px;color:var(--text3);">OUT ${formatClockTime(r.clockOut)}</div>` : '<div style="font-size:11px;color:var(--text3);">Still in</div>'}
+              <div style="font-size:12px;font-weight:600;color:var(--green);">IN &nbsp;${formatClockTime(r.clockIn)}</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:2px;">${r.clockOut ? 'OUT ' + formatClockTime(r.clockOut) : 'Still in'}</div>
             </div>
           </div>`).join('');
       }
