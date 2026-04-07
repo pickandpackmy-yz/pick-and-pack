@@ -590,46 +590,55 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { p
     </div>
 
     <!-- OWNER DASHBOARD -->
-    <div id="home-dashboard" style="display:none;padding:20px 16px;display:none;flex-direction:column;gap:16px;">
+    <div id="home-dashboard" style="display:none;flex-direction:column;">
 
-      <!-- Name + time row -->
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);">
-        <div>
-          <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Welcome back</div>
-          <div style="font-size:20px;font-weight:700;" id="home-staff-name-dash">—</div>
-          <div style="margin-top:8px;">
-            <span style="font-size:11px;font-weight:600;color:var(--accent);background:rgba(245,200,66,0.12);border:1px solid rgba(245,200,66,0.25);border-radius:20px;padding:3px 10px;">Owner</span>
-          </div>
-        </div>
-        <div style="text-align:right;">
-          <div style="font-size:22px;font-weight:700;color:var(--accent);font-family:'DM Mono',monospace;letter-spacing:1px;" id="dash-live-time">--:--</div>
-          <div style="font-size:12px;color:var(--text3);margin-top:4px;" id="dash-live-date"></div>
-        </div>
-      </div>
-
-      <!-- Pending Leaves -->
-      <div>
-        <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Overview</div>
-        <div onclick="navTo('leave')" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
+      <!-- Hero section (same style as supervisor) -->
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:48px 32px 32px;">
+        <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(245,200,66,0.12);border:1px solid rgba(245,200,66,0.25);border-radius:20px;padding:5px 14px;font-size:11px;font-weight:600;color:var(--accent);letter-spacing:0.5px;margin-bottom:20px;">📦 Pick &amp; Pack</div>
+        <div style="font-size:36px;font-weight:700;line-height:1.15;letter-spacing:-0.5px;margin-bottom:10px;">Daily<br><span style="color:var(--accent);">Stock</span> Check</div>
+        <div style="font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:20px;" id="dash-live-date"></div>
+        <div style="display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 24px;">
           <div>
-            <div style="font-size:14px;font-weight:600;">Pending Leaves</div>
-            <div style="font-size:11px;color:var(--text3);margin-top:3px;">Tap to review</div>
+            <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:2px;">Welcome back</div>
+            <div style="font-size:16px;font-weight:700;" id="home-staff-name-dash">—</div>
           </div>
-          <div style="display:flex;align-items:center;gap:10px;">
-            <div style="font-size:30px;font-weight:700;font-family:'DM Mono',monospace;" id="dash-pending-count">—</div>
-            <span style="color:var(--text3);font-size:18px;">›</span>
+          <div style="width:1px;height:32px;background:var(--border);"></div>
+          <div style="text-align:right;">
+            <div style="font-size:20px;font-weight:700;color:var(--accent);font-family:'DM Mono',monospace;letter-spacing:1px;" id="dash-live-time">--:--</div>
+            <div style="display:inline-flex;margin-top:4px;background:rgba(245,200,66,0.12);border:1px solid rgba(245,200,66,0.25);border-radius:20px;padding:2px 10px;">
+              <span style="font-size:10px;color:var(--accent);font-weight:600;">Owner</span>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Staff Attendance -->
-      <div>
-        <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Staff Attendance Today</div>
-        <div id="dash-attendance-list" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
-          <div style="padding:20px;text-align:center;color:var(--text3);font-size:13px;">Loading...</div>
-        </div>
-      </div>
+      <!-- Overview + Attendance -->
+      <div style="padding:0 16px 16px;display:flex;flex-direction:column;gap:16px;">
 
+        <!-- Pending Leaves -->
+        <div>
+          <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Overview</div>
+          <div onclick="navTo('leave')" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
+            <div>
+              <div style="font-size:14px;font-weight:600;">Pending Leaves</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:3px;">Tap to review</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="font-size:30px;font-weight:700;font-family:'DM Mono',monospace;" id="dash-pending-count">—</div>
+              <span style="color:var(--text3);font-size:18px;">›</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Staff Attendance -->
+        <div>
+          <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Staff Attendance Today</div>
+          <div id="dash-attendance-list" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
+            <div style="padding:20px;text-align:center;color:var(--text3);font-size:13px;">Loading...</div>
+          </div>
+        </div>
+
+      </div>
     </div>
 
     <!-- STAFF HOME (shown for staff role) -->
@@ -1075,7 +1084,7 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { p
     <span class="nav-icon">🔧</span>Admin
   </button>
   <button class="nav-btn" id="nav-me" onclick="navTo('me')">
-    <span class="nav-icon">👤</span>Me
+    <span class="nav-icon" id="nav-me-icon">👤</span><span id="nav-me-label">Me</span>
   </button>
 </div>
  
@@ -1238,6 +1247,10 @@ if (state.loggedIn && state.staff) {
       document.getElementById('home-dashboard').style.flexDirection = 'column';
       document.getElementById('home-supervisor').style.display = 'none';
       document.getElementById('home-staff-panel').style.display = 'none';
+      const meIcon = document.getElementById('nav-me-icon');
+      const meLabel = document.getElementById('nav-me-label');
+      if (meIcon) meIcon.textContent = '👤';
+      if (meLabel) meLabel.textContent = 'Admin';
       startDashClock();
       loadDashboard();
     } else if (state.staffRole === 'supervisor') {
@@ -1276,7 +1289,7 @@ function showScreen(id) {
       'screen-categories': 'stock',
       'screen-photo': 'invoice',
       'screen-portal': 'leave',
-      'screen-admin': 'admin',
+      'screen-admin': state.staffRole === 'owner' ? 'me' : 'admin',
       'screen-me': 'me',
     };
     if (tabMap[id]) setActiveNav(tabMap[id]);
@@ -1695,15 +1708,21 @@ async function checkPin() {
       document.getElementById('home-staff-name').textContent = matchedUser.name;
       const approveTab = document.getElementById('tab-approve');
       if (approveTab) approveTab.style.display = (matchedUser.role === 'owner') ? 'flex' : 'none';
-      // Show/hide Admin nav button for owner
+      // For owner: relabel the Me nav button as Admin, hide the wrench admin button
       const adminNav = document.getElementById('nav-admin');
+      const meIcon = document.getElementById('nav-me-icon');
+      const meLabel = document.getElementById('nav-me-label');
       const bottomNav = document.getElementById('bottom-nav');
       if (matchedUser.role === 'owner') {
-        adminNav.style.display = 'flex';
-        bottomNav.classList.add('owner-nav');
+        adminNav.style.display = 'none'; // hide wrench button
+        bottomNav.classList.remove('owner-nav');
+        if (meIcon) meIcon.textContent = '👤';
+        if (meLabel) meLabel.textContent = 'Admin';
       } else {
         adminNav.style.display = 'none';
         bottomNav.classList.remove('owner-nav');
+        if (meIcon) meIcon.textContent = '👤';
+        if (meLabel) meLabel.textContent = 'Me';
       }
       showScreen('screen-home');
       if (matchedUser.role === 'owner') {
@@ -1745,9 +1764,13 @@ function logout() {
   // Reset dot colors
   document.querySelectorAll('.pin-dot').forEach(d => d.style.background = '');
   document.getElementById('login-error').textContent = '';
-  // Hide admin nav
+  // Hide admin nav, reset Me label
   document.getElementById('nav-admin').style.display = 'none';
   document.getElementById('bottom-nav').classList.remove('owner-nav');
+  const meIcon = document.getElementById('nav-me-icon');
+  const meLabel = document.getElementById('nav-me-label');
+  if (meIcon) meIcon.textContent = '👤';
+  if (meLabel) meLabel.textContent = 'Me';
   showScreen('screen-login');
 }
 
@@ -1790,7 +1813,11 @@ function navTo(tab) {
   } else if (tab === 'admin') {
     goAdmin();
   } else if (tab === 'me') {
-    goMe();
+    if (state.staffRole === 'owner') {
+      goAdmin();
+    } else {
+      goMe();
+    }
   }
 }
 
