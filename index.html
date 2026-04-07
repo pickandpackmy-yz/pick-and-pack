@@ -25,7 +25,7 @@
   --radius: 12px;
   --radius-sm: 8px;
 }
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 body {
   font-family: 'DM Sans', sans-serif;
   background: var(--bg);
@@ -529,18 +529,18 @@ document.addEventListener('touchstart', function(e) {
   if (e.touches.length > 1) e.preventDefault();
 }, { passive: false });
 
-// Prevent double-tap zoom
+// Prevent double-tap zoom - extended window
 let lastTouchEnd = 0;
 document.addEventListener('touchend', function(e) {
   const now = Date.now();
-  if (now - lastTouchEnd <= 300) e.preventDefault();
+  if (now - lastTouchEnd <= 500) e.preventDefault();
   lastTouchEnd = now;
 }, { passive: false });
 
 // Prevent gesture zoom (iOS Safari)
-document.addEventListener('gesturestart', function(e) {
-  e.preventDefault();
-}, { passive: false });
+document.addEventListener('gesturestart', function(e) { e.preventDefault(); }, { passive: false });
+document.addEventListener('gesturechange', function(e) { e.preventDefault(); }, { passive: false });
+document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { passive: false });
 </script>
 </head>
 <body>
@@ -580,55 +580,56 @@ document.addEventListener('gesturestart', function(e) {
   <div class="has-nav" style="flex:1;overflow-y:auto;padding:0;display:flex;flex-direction:column;gap:0;padding-bottom:90px;">
 
     <!-- SUPERVISOR HOME -->
-    <div id="home-supervisor" style="display:none;flex:1;align-items:center;justify-content:center;flex-direction:column;min-height:80dvh;">
-      <div style="display:inline-flex;align-items:center;gap:10px;background:var(--surface);border:2px solid var(--green);border-radius:12px;padding:14px 28px;">
-        <span style="width:9px;height:9px;border-radius:50%;background:var(--green);flex-shrink:0;display:inline-block;"></span>
-        <span style="font-size:16px;font-weight:600;" id="home-supervisor-name">—</span>
-        <span style="font-size:13px;color:var(--text2);">· Supervisor</span>
+    <div id="home-supervisor" style="display:none;flex:1;align-items:center;justify-content:center;flex-direction:column;min-height:80dvh;text-align:center;padding:40px 32px;">
+      <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(245,200,66,0.12);border:1px solid rgba(245,200,66,0.25);border-radius:20px;padding:5px 14px;font-size:11px;font-weight:600;color:var(--accent);letter-spacing:0.5px;margin-bottom:20px;">📦 Pick &amp; Pack</div>
+      <div style="font-size:36px;font-weight:700;line-height:1.15;letter-spacing:-0.5px;margin-bottom:10px;">Daily<br><span style="color:var(--accent);">Stock</span> Check</div>
+      <div style="font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:20px;" id="home-supervisor-date"></div>
+      <div style="display:inline-flex;align-items:center;background:var(--surface);border:2px solid var(--green);border-radius:12px;padding:12px 28px;">
+        <span style="font-size:15px;font-weight:600;" id="home-supervisor-name">—</span>
       </div>
     </div>
 
     <!-- OWNER DASHBOARD -->
-    <div id="home-dashboard" style="display:none;">
-      <!-- Header -->
-      <div style="background:var(--surface);border-bottom:1px solid var(--border);padding:20px 16px 16px;">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
-          <div>
-            <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Welcome back</div>
-            <div style="font-size:22px;font-weight:700;letter-spacing:-0.3px;" id="home-staff-name-dash">—</div>
-          </div>
-          <div style="text-align:right;flex-shrink:0;">
-            <div style="font-size:14px;font-weight:700;color:var(--accent);font-family:'DM Mono',monospace;" id="dash-live-time">--:--</div>
-            <div style="font-size:11px;color:var(--text3);margin-top:3px;white-space:nowrap;" id="dash-live-date"></div>
+    <div id="home-dashboard" style="display:none;padding:20px 16px;display:none;flex-direction:column;gap:16px;">
+
+      <!-- Name + time row -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);">
+        <div>
+          <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Welcome back</div>
+          <div style="font-size:20px;font-weight:700;" id="home-staff-name-dash">—</div>
+          <div style="margin-top:8px;">
+            <span style="font-size:11px;font-weight:600;color:var(--accent);background:rgba(245,200,66,0.12);border:1px solid rgba(245,200,66,0.25);border-radius:20px;padding:3px 10px;">Owner</span>
           </div>
         </div>
-        <div style="display:inline-flex;align-items:center;margin-top:10px;background:rgba(245,200,66,0.1);border:1px solid rgba(245,200,66,0.25);border-radius:20px;padding:4px 12px;">
-          <span style="font-size:11px;color:var(--accent);font-weight:600;">Owner</span>
+        <div style="text-align:right;">
+          <div style="font-size:22px;font-weight:700;color:var(--accent);font-family:'DM Mono',monospace;letter-spacing:1px;" id="dash-live-time">--:--</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:4px;" id="dash-live-date"></div>
         </div>
       </div>
 
-      <!-- Pending Leaves stat -->
-      <div style="padding:16px 16px 0;">
-        <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">Overview</div>
-        <div onclick="navTo('leave')" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;margin-bottom:14px;">
+      <!-- Pending Leaves -->
+      <div>
+        <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Overview</div>
+        <div onclick="navTo('leave')" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
           <div>
-            <div style="font-size:13px;font-weight:600;color:var(--text);">Pending Leaves</div>
-            <div style="font-size:11px;color:var(--text3);margin-top:2px;">Tap to review</div>
+            <div style="font-size:14px;font-weight:600;">Pending Leaves</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:3px;">Tap to review</div>
           </div>
           <div style="display:flex;align-items:center;gap:10px;">
-            <div style="font-size:28px;font-weight:700;font-family:'DM Mono',monospace;" id="dash-pending-count">—</div>
-            <span style="color:var(--text3);font-size:16px;">›</span>
+            <div style="font-size:30px;font-weight:700;font-family:'DM Mono',monospace;" id="dash-pending-count">—</div>
+            <span style="color:var(--text3);font-size:18px;">›</span>
           </div>
         </div>
       </div>
 
-      <!-- Staff Attendance Today -->
-      <div style="padding:0 16px;">
-        <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">Staff Attendance Today</div>
-        <div id="dash-attendance-list" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:14px;">
+      <!-- Staff Attendance -->
+      <div>
+        <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Staff Attendance Today</div>
+        <div id="dash-attendance-list" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
           <div style="padding:20px;text-align:center;color:var(--text3);font-size:13px;">Loading...</div>
         </div>
       </div>
+
     </div>
 
     <!-- STAFF HOME (shown for staff role) -->
@@ -1233,7 +1234,8 @@ if (state.loggedIn && state.staff) {
   // Start appropriate home for role
   setTimeout(() => {
     if (state.staffRole === 'owner') {
-      document.getElementById('home-dashboard').style.display = 'block';
+      document.getElementById('home-dashboard').style.display = 'flex';
+      document.getElementById('home-dashboard').style.flexDirection = 'column';
       document.getElementById('home-supervisor').style.display = 'none';
       document.getElementById('home-staff-panel').style.display = 'none';
       startDashClock();
@@ -1243,6 +1245,7 @@ if (state.loggedIn && state.staff) {
       document.getElementById('home-supervisor').style.display = 'flex';
       document.getElementById('home-staff-panel').style.display = 'none';
       document.getElementById('home-supervisor-name').textContent = state.staff || '—';
+      document.getElementById('home-supervisor-date').textContent = new Date().toLocaleDateString('en-MY', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
     } else {
       document.getElementById('home-dashboard').style.display = 'none';
       document.getElementById('home-supervisor').style.display = 'none';
@@ -1282,7 +1285,8 @@ function showScreen(id) {
 function goHome() {
   showScreen('screen-home');
   if (state.staffRole === 'owner') {
-    document.getElementById('home-dashboard').style.display = 'block';
+    document.getElementById('home-dashboard').style.display = 'flex';
+    document.getElementById('home-dashboard').style.flexDirection = 'column';
     document.getElementById('home-supervisor').style.display = 'none';
     document.getElementById('home-staff-panel').style.display = 'none';
     startDashClock();
@@ -1292,6 +1296,7 @@ function goHome() {
     document.getElementById('home-supervisor').style.display = 'flex';
     document.getElementById('home-staff-panel').style.display = 'none';
     document.getElementById('home-supervisor-name').textContent = state.staff || '—';
+    document.getElementById('home-supervisor-date').textContent = new Date().toLocaleDateString('en-MY', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   } else {
     document.getElementById('home-dashboard').style.display = 'none';
     document.getElementById('home-supervisor').style.display = 'none';
@@ -1702,7 +1707,8 @@ async function checkPin() {
       }
       showScreen('screen-home');
       if (matchedUser.role === 'owner') {
-        document.getElementById('home-dashboard').style.display = 'block';
+        document.getElementById('home-dashboard').style.display = 'flex';
+        document.getElementById('home-dashboard').style.flexDirection = 'column';
         document.getElementById('home-supervisor').style.display = 'none';
         document.getElementById('home-staff-panel').style.display = 'none';
         startDashClock();
@@ -1712,6 +1718,7 @@ async function checkPin() {
         document.getElementById('home-supervisor').style.display = 'flex';
         document.getElementById('home-staff-panel').style.display = 'none';
         document.getElementById('home-supervisor-name').textContent = matchedUser.name;
+        document.getElementById('home-supervisor-date').textContent = new Date().toLocaleDateString('en-MY', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
       } else {
         document.getElementById('home-dashboard').style.display = 'none';
         document.getElementById('home-supervisor').style.display = 'none';
