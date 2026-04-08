@@ -184,10 +184,15 @@ body {
   transition: all 0.15s;
   display: flex; align-items: center; gap: 10px;
 }
+.item-card.done {
+  background: rgba(74,222,128,0.07);
+  border-color: rgba(74,222,128,0.35);
+}
 .item-card:active { background: var(--surface2); }
 .item-info { flex: 1; min-width: 0; }
 .item-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .item-meta { font-size: 11px; color: var(--text2); margin-top: 3px; font-family: 'DM Mono', monospace; }
+.item-card.done .item-meta { color: var(--green); }
 .item-diff { font-size: 13px; font-weight: 600; font-family: 'DM Mono', monospace; flex-shrink: 0; }
 
 /* ── ITEM FORM ── */
@@ -1374,20 +1379,32 @@ function renderItems(cat) {
   const items = PRODUCTS.filter(p => p.c === cat);
   const done = items.filter(i => state.records[i.n]).length;
   document.getElementById('items-header-title').textContent = cat;
-  document.getElementById('items-header-sub').textContent = '';
+  document.getElementById('items-header-sub').textContent = done + '/' + items.length + ' done';
 
   const list = document.getElementById('item-list');
   list.innerHTML = items.map(p => {
     const rec = state.records[p.n];
-    const dotClass = !rec ? '' : 'filled';
-    const meta = rec ? `O:${rec.opening} R:${rec.restock} C:${rec.closing}` : p.c;
-    return `<div class="item-card" onclick="openItem('${p.n.replace(/'/g,"\\'")}')">
-     
+    const isDone = !!rec;
+    const hasData = rec && (rec.opening != null || rec.restock != null || rec.closing != null);
+    let meta;
+    if (hasData) {
+      const parts = [];
+      if (rec.opening  != null) parts.push('O:' + rec.opening);
+      if (rec.restock  != null) parts.push('R:' + rec.restock);
+      if (rec.closing  != null) parts.push('C:' + rec.closing);
+      meta = parts.length ? parts.join('  ') : 'Saved ✓';
+    } else if (isDone) {
+      meta = 'Saved ✓';
+    } else {
+      meta = p.c;
+    }
+    const checkIcon = isDone ? '✓' : '';
+    return `<div class="item-card${isDone ? ' done' : ''}" onclick="openItem('${p.n.replace(/'/g,"\\'")}')">
       <div class="item-info">
         <div class="item-name">${p.n}</div>
         <div class="item-meta">${meta}</div>
       </div>
-      <div class="item-diff"></div>
+      <div class="item-diff" style="color:var(--green);font-size:16px;">${checkIcon}</div>
     </div>`;
   }).join('');
 }
@@ -1474,13 +1491,16 @@ async function saveItem() {
     loss_discount: (discQty    || 0) * (p.sell - p.cost) * 0.5,
   };
   saveState();
+
+  // Reset button & navigate BEFORE async work — prevents stuck "Saving..." on return
+  if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
   showToast('Saved ✓');
-  setTimeout(() => goItems(), 400);       // navigate away quickly — user doesn't wait
+  goItems();
 
   // ── Step 2: Sync to Google Sheet in the background ──
+  const syncItem    = state.currentItem;   // capture before navigation may change state
+  const syncDateKey = getTodayDateKey();
   try {
-    const dateKey = getTodayDateKey();
-
     // Upload reject photos
     if (f.rejectPhotos && f.rejectPhotos.length > 0) {
       for (let i = 0; i < f.rejectPhotos.length; i++) {
@@ -1488,14 +1508,12 @@ async function saveItem() {
         const base64 = compressed.split(',')[1];
         try {
           await gsRequest({
-            secret: GS_SECRET, type: 'rejectPhoto', dateKey,
+            secret: GS_SECRET, type: 'rejectPhoto', dateKey: syncDateKey,
             imageBase64: base64,
-            fileName: 'reject_' + state.currentItem.replace(/\s+/g,'_') + '_' + (i+1) + '.jpg',
-            itemName: state.currentItem,
+            fileName: 'reject_' + syncItem.replace(/\s+/g,'_') + '_' + (i+1) + '.jpg',
+            itemName: syncItem,
           });
         } catch(photoErr) {
-          // Photo quota error: the file still lands in Drive even when GAS throws quota.
-          // Log and continue — don't block the stock save.
           console.warn('rejectPhoto upload warning (photo may still be saved):', photoErr.message);
         }
       }
@@ -1503,19 +1521,15 @@ async function saveItem() {
 
     // Save stock row
     const result = await gsRequest({
-      secret: GS_SECRET, type: 'saveStock', dateKey,
+      secret: GS_SECRET, type: 'saveStock', dateKey: syncDateKey,
       staffName: state.staff || '', cashierName: state.staff || '',
-      items: [{ name: state.currentItem, opening, restock, return_item: ret,
+      items: [{ name: syncItem, opening, restock, return_item: ret,
                 rejected: rejectedQty, discount_qty: discQty, closing, remarks }]
     });
     if (result && result.status === 'error') throw new Error(result.message);
 
   } catch(e) {
-    // Background sync failed — local data is already saved, just warn
     console.error('Background sheet sync failed:', e.message);
-    showToast('⚠ Sheet sync failed — saved locally');
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
   }
 }
 
