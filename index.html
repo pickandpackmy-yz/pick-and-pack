@@ -1474,13 +1474,16 @@ async function saveItem() {
     loss_discount: (discQty    || 0) * (p.sell - p.cost) * 0.5,
   };
   saveState();
+
+  // Reset button and navigate BEFORE background sync — prevents stuck "Saving..." state
+  if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
   showToast('Saved ✓');
-  setTimeout(() => goItems(), 400);       // navigate away quickly — user doesn't wait
+  goItems();
 
   // ── Step 2: Sync to Google Sheet in the background ──
+  const syncItem    = state.currentItem;  // capture before navigation changes state
+  const syncDateKey = getTodayDateKey();
   try {
-    const dateKey = getTodayDateKey();
-
     // Upload reject photos
     if (f.rejectPhotos && f.rejectPhotos.length > 0) {
       for (let i = 0; i < f.rejectPhotos.length; i++) {
@@ -1488,14 +1491,13 @@ async function saveItem() {
         const base64 = compressed.split(',')[1];
         try {
           await gsRequest({
-            secret: GS_SECRET, type: 'rejectPhoto', dateKey,
+            secret: GS_SECRET, type: 'rejectPhoto', dateKey: syncDateKey,
             imageBase64: base64,
-            fileName: 'reject_' + state.currentItem.replace(/\s+/g,'_') + '_' + (i+1) + '.jpg',
-            itemName: state.currentItem,
+            fileName: 'reject_' + syncItem.replace(/\s+/g,'_') + '_' + (i+1) + '.jpg',
+            itemName: syncItem,
           });
         } catch(photoErr) {
           // Photo quota error: the file still lands in Drive even when GAS throws quota.
-          // Log and continue — don't block the stock save.
           console.warn('rejectPhoto upload warning (photo may still be saved):', photoErr.message);
         }
       }
@@ -1503,9 +1505,9 @@ async function saveItem() {
 
     // Save stock row
     const result = await gsRequest({
-      secret: GS_SECRET, type: 'saveStock', dateKey,
+      secret: GS_SECRET, type: 'saveStock', dateKey: syncDateKey,
       staffName: state.staff || '', cashierName: state.staff || '',
-      items: [{ name: state.currentItem, opening, restock, return_item: ret,
+      items: [{ name: syncItem, opening, restock, return_item: ret,
                 rejected: rejectedQty, discount_qty: discQty, closing, remarks }]
     });
     if (result && result.status === 'error') throw new Error(result.message);
@@ -1513,9 +1515,6 @@ async function saveItem() {
   } catch(e) {
     // Background sync failed — local data is already saved, just warn
     console.error('Background sheet sync failed:', e.message);
-    showToast('⚠ Sheet sync failed — saved locally');
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
   }
 }
 
