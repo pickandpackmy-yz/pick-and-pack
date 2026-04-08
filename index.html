@@ -1176,6 +1176,17 @@ function saveState() {
   const toSave = Object.assign({}, state);
   delete toSave.staff;
   delete toSave.loggedIn;
+  // Never store base64 photos in localStorage — huge and causes UI freeze
+  // Only keep rejectPhotoUrls (Drive URLs set after upload)
+  const safeRecords = {};
+  for (const [k, v] of Object.entries(toSave.records || {})) {
+    const { rejectPhotos, ...rest } = v;
+    safeRecords[k] = rest;
+  }
+  toSave.records = safeRecords;
+  const safeFormData = Object.assign({}, toSave.formData || {});
+  delete safeFormData.rejectPhotos;
+  toSave.formData = safeFormData;
   localStorage.setItem('stockState', JSON.stringify(toSave));
 }
 loadState();
@@ -1481,64 +1492,71 @@ async function saveItem() {
   }
 
   const btn = document.getElementById('item-save-btn');
-  if (btn && btn.disabled) return;        // prevent double-tap
+  if (btn && btn.disabled) return;
   if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
 
-  // ── Step 1: Save to local cache immediately so user sees feedback ──
-  state.records[state.currentItem] = {
-    ...f, opening, restock, return_item: ret, rejected: rejectedQty, closing,
-    discount_qty: discQty, cost: p.cost, sell: p.sell,
-    category: p.c, supplier: p.s,
-    loss_rejected: (rejectedQty || 0) * p.cost,
-    loss_discount: (discQty    || 0) * (p.sell - p.cost) * 0.5,
-  };
-  saveState();
+  const itemName   = state.currentItem;
+  const photos     = (f.rejectPhotos || []).slice();
+  const dateKey    = getTodayDateKey();
+  const uploadedUrls = [];
 
-  // Reset btn & navigate BEFORE background upload starts — btn is no longer relevant after navigation
-  if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
-  showToast('Saved ✓');
-  goItems();
-
-  // ── Step 2: Sync to Google Sheet in the background (fire-and-forget) ──
-  const itemNameForUpload = state.currentItem;
-  const photosForUpload = (f.rejectPhotos || []).slice(); // snapshot before state changes
   try {
-    const dateKey = getTodayDateKey();
-
-    // Upload reject photos (use snapshot taken before navigation)
-    if (photosForUpload.length > 0) {
-      for (let i = 0; i < photosForUpload.length; i++) {
-        const compressed = await compressPhoto(photosForUpload[i]);
-        const base64 = compressed.split(',')[1];
+    // ── Step 1: Upload reject photos NOW (before saving state) ──
+    if (photos.length > 0) {
+      for (let i = 0; i < photos.length; i++) {
+        if (btn) btn.textContent = `Uploading photo ${i+1}/${photos.length}...`;
+        let base64;
         try {
-          await gsRequest({
+          const compressed = await compressPhoto(photos[i]);
+          base64 = compressed.split(',')[1];
+        } catch(compErr) {
+          // compression failed — use raw base64
+          base64 = photos[i].split(',')[1];
+        }
+        try {
+          const res = await gsRequest({
             secret: GS_SECRET, type: 'rejectPhoto', dateKey,
             imageBase64: base64,
-            fileName: 'reject_' + itemNameForUpload.replace(/\s+/g,'_') + '_' + (i+1) + '.jpg',
-            itemName: itemNameForUpload,
+            fileName: 'reject_' + itemName.replace(/\s+/g,'_') + '_' + (i+1) + '.jpg',
+            itemName: itemName,
           });
-        } catch(photoErr) {
-          // Photo quota error: the file still lands in Drive even when GAS throws quota.
-          // Log and continue — don't block the stock save.
-          console.warn('rejectPhoto upload warning (photo may still be saved):', photoErr.message);
+          if (res && res.url) uploadedUrls.push(res.url);
+        } catch(uploadErr) {
+          console.warn('Photo upload failed (continuing):', uploadErr.message);
         }
       }
     }
 
-    // Save stock row
+    // ── Step 2: Save stock row to Google Sheet ──
+    if (btn) btn.textContent = 'Saving to Sheet...';
     const result = await gsRequest({
       secret: GS_SECRET, type: 'saveStock', dateKey,
       staffName: state.staff || '', cashierName: state.staff || '',
-      items: [{ name: itemNameForUpload, opening, restock, return_item: ret,
+      items: [{ name: itemName, opening, restock, return_item: ret,
                 rejected: rejectedQty, discount_qty: discQty, closing, remarks }]
     });
     if (result && result.status === 'error') throw new Error(result.message);
 
   } catch(e) {
-    // Background sync failed — local data is already saved, just warn
-    console.error('Background sheet sync failed:', e.message);
+    console.error('Sheet sync error:', e.message);
     showToast('⚠ Sheet sync failed — saved locally');
   }
+
+  // ── Step 3: Save to local state (WITHOUT base64 — store Drive URLs instead) ──
+  state.records[itemName] = {
+    opening, restock, return_item: ret, rejected: rejectedQty, closing,
+    discount_qty: discQty, remarks,
+    cost: p.cost, sell: p.sell, category: p.c, supplier: p.s,
+    loss_rejected: (rejectedQty || 0) * p.cost,
+    loss_discount: (discQty    || 0) * (p.sell - p.cost) * 0.5,
+    rejectPhotoUrls: uploadedUrls,
+    // rejectPhotos intentionally NOT stored — base64 too large for localStorage
+  };
+  saveState();
+
+  if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
+  showToast('Saved ✓');
+  goItems();
 }
 
 // ── NUMPAD ──
@@ -2337,12 +2355,8 @@ const GS_SECRET = '668811';
 
 // Compress image to reduce base64 size before uploading
 function compressPhoto(dataUrl, maxWidth = 1200, quality = 0.75) {
-  return new Promise(resolve => {
-    // Safety timeout: if canvas compress hangs >8s, fall back to original
-    const timer = setTimeout(() => {
-      console.warn('compressPhoto timeout — using original');
-      resolve(dataUrl);
-    }, 8000);
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('compress timeout')), 10000);
     const img = new Image();
     img.onload = () => {
       clearTimeout(timer);
@@ -2353,16 +2367,9 @@ function compressPhoto(dataUrl, maxWidth = 1200, quality = 0.75) {
         canvas.width = w; canvas.height = h;
         canvas.getContext('2d').drawImage(img, 0, 0, w, h);
         resolve(canvas.toDataURL('image/jpeg', quality));
-      } catch(e) {
-        console.warn('compressPhoto canvas error — using original:', e);
-        resolve(dataUrl);
-      }
+      } catch(e) { reject(e); }
     };
-    img.onerror = () => {
-      clearTimeout(timer);
-      console.warn('compressPhoto img load error — using original');
-      resolve(dataUrl);
-    };
+    img.onerror = () => { clearTimeout(timer); reject(new Error('img load failed')); };
     img.src = dataUrl;
   });
 }
@@ -2848,30 +2855,8 @@ async function sendStockToSheet() {
 
     const dateKey = getTodayDateKey();
 
-    // Step 1: Upload reject photos first
-    for (const [name, rec] of Object.entries(state.records)) {
-      if (!rec.rejectPhotos || rec.rejectPhotos.length === 0) continue;
-      for (let i = 0; i < rec.rejectPhotos.length; i++) {
-        btn.textContent = `Uploading photos (${name})...`;
-        try {
-          const compressed = await compressPhoto(rec.rejectPhotos[i]);
-          const base64     = compressed.split(',')[1];
-          await gsRequest({
-            secret     : GS_SECRET,
-            type       : 'rejectPhoto',
-            dateKey    : dateKey,
-            imageBase64: base64,
-            fileName   : 'reject_' + name.replace(/\s+/g,'_') + '_' + (i+1) + '.jpg',
-            itemName   : name,
-          });
-        } catch(photoErr) {
-          // Photo upload failed — log and continue, don't block stock save
-          console.warn('Reject photo upload failed for ' + name + ':', photoErr.message);
-        }
-      }
-    }
-
-    // Step 2: Save stock data to sheet
+    // Step 1: Save stock data to sheet
+    // (Reject photos are uploaded immediately when each item is saved)
     btn.textContent = 'Saving to Sheet...';
     const result = await gsRequest({
       secret     : GS_SECRET,
