@@ -1193,6 +1193,14 @@ let state = {
 
 // Load from localStorage
 const APP_VERSION = 'v2';
+function getStockDateKey() {
+  const now = new Date();
+  const myt = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+  const dd   = String(myt.getUTCDate()).padStart(2, '0');
+  const mm   = String(myt.getUTCMonth() + 1).padStart(2, '0');
+  const yyyy = myt.getUTCFullYear();
+  return dd + '-' + mm + '-' + yyyy;
+}
 function loadState() {
   const ver = localStorage.getItem('appVersion');
   if (ver !== APP_VERSION) {
@@ -1207,6 +1215,14 @@ function loadState() {
       // Never load staff or loggedIn from storage
       delete s.staff;
       delete s.loggedIn;
+      // Auto-clear records if date has changed (new day)
+      const todayKey = getStockDateKey();
+      if (s.savedDateKey && s.savedDateKey !== todayKey) {
+        s.records = {};
+        s.formData = {};
+        s.doPhotos = [];
+        s.doNumber = '';
+      }
       Object.assign(state, s);
     } catch(e) {}
   }
@@ -1216,6 +1232,7 @@ function saveState() {
   const toSave = Object.assign({}, state);
   delete toSave.staff;
   delete toSave.loggedIn;
+  toSave.savedDateKey = getStockDateKey();
   // Never store base64 photos in localStorage — huge and causes UI freeze
   // Only keep rejectPhotoUrls (Drive URLs set after upload)
   const safeRecords = {};
