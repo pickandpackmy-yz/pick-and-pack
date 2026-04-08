@@ -1372,22 +1372,41 @@ function openCategory(cat) {
 // ── ITEMS ──
 function renderItems(cat) {
   const items = PRODUCTS.filter(p => p.c === cat);
-  const done = items.filter(i => state.records[i.n]).length;
   document.getElementById('items-header-title').textContent = cat;
   document.getElementById('items-header-sub').textContent = '';
 
   const list = document.getElementById('item-list');
   list.innerHTML = items.map(p => {
     const rec = state.records[p.n];
-    const dotClass = !rec ? '' : 'filled';
-    const meta = rec ? `O:${rec.opening} R:${rec.restock} C:${rec.closing}` : p.c;
-    return `<div class="item-card" onclick="openItem('${p.n.replace(/'/g,"\\'")}')">
-     
+    const saved = !!rec;
+
+    // Build meta: only show fields that have a non-null value
+    let meta = p.c;
+    if (saved) {
+      const parts = [];
+      if (rec.opening  != null) parts.push('O:' + rec.opening);
+      if (rec.restock  != null) parts.push('R:' + rec.restock);
+      if (rec.return_item != null) parts.push('Ret:' + rec.return_item);
+      if (rec.rejected != null) parts.push('Rej:' + rec.rejected);
+      if (rec.discount_qty != null) parts.push('Disc:' + rec.discount_qty);
+      if (rec.closing  != null) parts.push('C:' + rec.closing);
+      meta = parts.length ? parts.join(' ') : '—';
+    }
+
+    const cardStyle = saved
+      ? 'border-color: var(--green); background: rgba(74,222,128,0.06);'
+      : '';
+
+    const editBtn = saved
+      ? `<button onclick="event.stopPropagation();openItem('${p.n.replace(/'/g,"\\'")}')" style="flex-shrink:0;background:rgba(74,222,128,0.12);color:var(--green);border:1px solid rgba(74,222,128,0.3);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Edit</button>`
+      : '';
+
+    return `<div class="item-card" style="${cardStyle}" onclick="openItem('${p.n.replace(/'/g,"\\'")}')">
       <div class="item-info">
         <div class="item-name">${p.n}</div>
-        <div class="item-meta">${meta}</div>
+        <div class="item-meta" style="${saved ? 'color:var(--green);opacity:0.8;' : ''}">${meta}</div>
       </div>
-      <div class="item-diff"></div>
+      ${editBtn}
     </div>`;
   }).join('');
 }
@@ -1474,24 +1493,29 @@ async function saveItem() {
     loss_discount: (discQty    || 0) * (p.sell - p.cost) * 0.5,
   };
   saveState();
-  showToast('Saved ✓');
-  setTimeout(() => goItems(), 400);       // navigate away quickly — user doesn't wait
 
-  // ── Step 2: Sync to Google Sheet in the background ──
+  // Reset btn & navigate BEFORE background upload starts — btn is no longer relevant after navigation
+  if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
+  showToast('Saved ✓');
+  goItems();
+
+  // ── Step 2: Sync to Google Sheet in the background (fire-and-forget) ──
+  const itemNameForUpload = state.currentItem;
+  const photosForUpload = (f.rejectPhotos || []).slice(); // snapshot before state changes
   try {
     const dateKey = getTodayDateKey();
 
-    // Upload reject photos
-    if (f.rejectPhotos && f.rejectPhotos.length > 0) {
-      for (let i = 0; i < f.rejectPhotos.length; i++) {
-        const compressed = await compressPhoto(f.rejectPhotos[i]);
+    // Upload reject photos (use snapshot taken before navigation)
+    if (photosForUpload.length > 0) {
+      for (let i = 0; i < photosForUpload.length; i++) {
+        const compressed = await compressPhoto(photosForUpload[i]);
         const base64 = compressed.split(',')[1];
         try {
           await gsRequest({
             secret: GS_SECRET, type: 'rejectPhoto', dateKey,
             imageBase64: base64,
-            fileName: 'reject_' + state.currentItem.replace(/\s+/g,'_') + '_' + (i+1) + '.jpg',
-            itemName: state.currentItem,
+            fileName: 'reject_' + itemNameForUpload.replace(/\s+/g,'_') + '_' + (i+1) + '.jpg',
+            itemName: itemNameForUpload,
           });
         } catch(photoErr) {
           // Photo quota error: the file still lands in Drive even when GAS throws quota.
@@ -1505,7 +1529,7 @@ async function saveItem() {
     const result = await gsRequest({
       secret: GS_SECRET, type: 'saveStock', dateKey,
       staffName: state.staff || '', cashierName: state.staff || '',
-      items: [{ name: state.currentItem, opening, restock, return_item: ret,
+      items: [{ name: itemNameForUpload, opening, restock, return_item: ret,
                 rejected: rejectedQty, discount_qty: discQty, closing, remarks }]
     });
     if (result && result.status === 'error') throw new Error(result.message);
@@ -1514,8 +1538,6 @@ async function saveItem() {
     // Background sync failed — local data is already saved, just warn
     console.error('Background sheet sync failed:', e.message);
     showToast('⚠ Sheet sync failed — saved locally');
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
   }
 }
 
