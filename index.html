@@ -2338,14 +2338,30 @@ const GS_SECRET = '668811';
 // Compress image to reduce base64 size before uploading
 function compressPhoto(dataUrl, maxWidth = 1200, quality = 0.75) {
   return new Promise(resolve => {
+    // Safety timeout: if canvas compress hangs >8s, fall back to original
+    const timer = setTimeout(() => {
+      console.warn('compressPhoto timeout — using original');
+      resolve(dataUrl);
+    }, 8000);
     const img = new Image();
     img.onload = () => {
-      const canvas = document.createElement('canvas');
-      let w = img.width, h = img.height;
-      if (w > maxWidth) { h = Math.round(h * maxWidth / w); w = maxWidth; }
-      canvas.width = w; canvas.height = h;
-      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      resolve(canvas.toDataURL('image/jpeg', quality));
+      clearTimeout(timer);
+      try {
+        const canvas = document.createElement('canvas');
+        let w = img.width, h = img.height;
+        if (w > maxWidth) { h = Math.round(h * maxWidth / w); w = maxWidth; }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      } catch(e) {
+        console.warn('compressPhoto canvas error — using original:', e);
+        resolve(dataUrl);
+      }
+    };
+    img.onerror = () => {
+      clearTimeout(timer);
+      console.warn('compressPhoto img load error — using original');
+      resolve(dataUrl);
     };
     img.src = dataUrl;
   });
@@ -2837,16 +2853,21 @@ async function sendStockToSheet() {
       if (!rec.rejectPhotos || rec.rejectPhotos.length === 0) continue;
       for (let i = 0; i < rec.rejectPhotos.length; i++) {
         btn.textContent = `Uploading photos (${name})...`;
-        const compressed = await compressPhoto(rec.rejectPhotos[i]);
-        const base64     = compressed.split(',')[1];
-        await gsRequest({
-          secret     : GS_SECRET,
-          type       : 'rejectPhoto',
-          dateKey    : dateKey,
-          imageBase64: base64,
-          fileName   : 'reject_' + name.replace(/\s+/g,'_') + '_' + (i+1) + '.jpg',
-          itemName   : name,
-        });
+        try {
+          const compressed = await compressPhoto(rec.rejectPhotos[i]);
+          const base64     = compressed.split(',')[1];
+          await gsRequest({
+            secret     : GS_SECRET,
+            type       : 'rejectPhoto',
+            dateKey    : dateKey,
+            imageBase64: base64,
+            fileName   : 'reject_' + name.replace(/\s+/g,'_') + '_' + (i+1) + '.jpg',
+            itemName   : name,
+          });
+        } catch(photoErr) {
+          // Photo upload failed — log and continue, don't block stock save
+          console.warn('Reject photo upload failed for ' + name + ':', photoErr.message);
+        }
       }
     }
 
